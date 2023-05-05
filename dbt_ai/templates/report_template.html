@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dbt Model Improvement Suggestions</title>
+    <style>
+        /* Add your custom CSS styles here */
+    </style>
+</head>
+<body>
+    <h1>dbt Model Improvement Suggestions</h1>
+    {% for model in models %}
+        <div class="model">
+            <h2>{{ model.name }}</h2>
+            <p>{{ model.suggestions }}</p>
+        </div>
+    {% endfor %}
+</body>
+</html>
