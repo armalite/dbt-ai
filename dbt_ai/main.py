@@ -1,6 +1,7 @@
 import sys
 from typing import List
-
+import os
+from jinja2 import Environment, FileSystemLoader
 
 def generate_response(prompt):
     response = openai.Completion.create(
@@ -21,7 +22,13 @@ def suggest_dbt_model_improvements(file_path, model_name):
     response = generate_response(prompt)
     return response
 
+def generate_html_report(models, output_path):
+    env = Environment(loader=FileSystemLoader("templates"))
+    template = env.get_template("report_template.html")
 
+    rendered_report = template.render(models=models)
+    with open(output_path, "w") as f:
+        f.write(rendered_report)
 
 def main(args: List[str] = sys.argv[1:]) -> None:
     print(f"hello {args[0]}!")
