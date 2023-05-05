@@ -1,0 +1,6 @@
+{
+    "name": "dbt-ai",
+    "devDependencies": {
+        "pyright": "1.1.298"
+    }
+}
