@@ -13,6 +13,9 @@ class DbtModelProcessor:
     def __init__(self, dbt_project_path):
         self.dbt_project_path = dbt_project_path
         self.yaml_files = find_yaml_files(dbt_project_path)
+        self.api_key_available = bool(os.getenv("OPENAI_API_KEY"))
+        if not self.api_key_available:
+            print("Warning: OPENAI_API_KEY is not set. Suggestion features will be unavailable.")
 
     def suggest_dbt_model_improvements(self, file_path, model_name) -> list:
         with open(file_path, "r") as f:
@@ -40,7 +43,10 @@ class DbtModelProcessor:
         model_name = os.path.basename(model_file).replace(".sql", "")
 
         has_metadata = self.model_has_metadata(model_name)
-        suggestions = self.suggest_dbt_model_improvements(model_file, model_name)
+        if self.api_key_available:
+            suggestions = self.suggest_dbt_model_improvements(model_file, model_name)
+        else:
+            suggestions = []
 
         return {
             "model_name": model_name,
