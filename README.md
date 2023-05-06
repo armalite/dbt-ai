@@ -5,8 +5,6 @@ This application helps you improve your dbt models by providing suggestions usin
 ## Installation
 NOTE: Production PIP MODULE IS NOT YET AVAILABLE
 
-To install the application, run the following command:
-
 The test application can be installed from TestPypi:
 ```bash
 pip install -i https://test.pypi.org/simple/ dbt-ai==0.0.2
