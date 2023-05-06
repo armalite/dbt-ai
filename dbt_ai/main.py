@@ -5,7 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 import argparse
 import glob
 from helper import find_yaml_files, generate_response
-from dbt import model_has_metadata, process_dbt_models
+from dbt import DbtModelProcessor
 from report import generate_html_report
 
 def main():
@@ -13,7 +13,8 @@ def main():
     parser.add_argument("dbt_project_path", help="Path to the dbt project directory")
     args = parser.parse_args()
 
-    models = process_dbt_models(args.dbt_project_path)
+    processor = DbtModelProcessor(args.dbt_project_path)
+    models = processor.process_dbt_models()
 
     output_path = os.path.join(args.dbt_project_path, "dbt_model_suggestions.html")
     generate_html_report(models, output_path)
@@ -31,5 +32,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
