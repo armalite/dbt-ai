@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import os
 
 from dbt_ai.dbt import DbtModelProcessor  #

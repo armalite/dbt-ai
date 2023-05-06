@@ -4,27 +4,27 @@ import os
 import yaml
 
 from dbt_ai.ai import generate_response
-from dbt_ai.helper import find_yaml_files, format_suggestion
+from dbt_ai.helper import find_yaml_files
 
 
 class DbtModelProcessor:
     """Class containing functions to process and analyse a DBT project"""
 
-    def __init__(self, dbt_project_path):
+    def __init__(self, dbt_project_path) -> None:
         self.dbt_project_path = dbt_project_path
         self.yaml_files = find_yaml_files(dbt_project_path)
         self.api_key_available = bool(os.getenv("OPENAI_API_KEY"))
         if not self.api_key_available:
             print("Warning: OPENAI_API_KEY is not set. Suggestion features will be unavailable.")
 
-    def suggest_dbt_model_improvements(self, file_path, model_name) -> list:
+    def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> list:
         with open(file_path, "r") as f:
             content = f.read()
         prompt = f"Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names:"
         response = generate_response(prompt)
         return response
 
-    def model_has_metadata(self, model_name) -> bool:
+    def model_has_metadata(self, model_name: str) -> bool:
         for yaml_file in self.yaml_files:
             with open(yaml_file, "r") as f:
                 try:
@@ -39,7 +39,7 @@ class DbtModelProcessor:
 
         return False
 
-    def process_model(self, model_file) -> dict:
+    def process_model(self, model_file: str) -> dict:
         model_name = os.path.basename(model_file).replace(".sql", "")
 
         has_metadata = self.model_has_metadata(model_name)
@@ -54,14 +54,14 @@ class DbtModelProcessor:
             "suggestions": raw_suggestion,
         }
 
-    def process_dbt_models(self):
+    def process_dbt_models(self):  # flake8: noqa
         model_files = glob.glob(os.path.join(self.dbt_project_path, "models/**/*.sql"), recursive=True)
         models = [self.process_model(model_file) for model_file in model_files]
         missing_metadata = []
 
         # Check for models without metadata
         for model in models:
-            if not model['metadata_exists']:
-                missing_metadata.append(model['model_name'])
-        
+            if not model["metadata_exists"]:
+                missing_metadata.append(model["model_name"])
+
         return models, missing_metadata

@@ -1,15 +1,17 @@
+# flake8: noqa
+
 import glob
-import os
 import html
+import os
 
 
-def find_yaml_files(dbt_project_path):
+def find_yaml_files(dbt_project_path: str):
     yaml_files = glob.glob(os.path.join(dbt_project_path, "**/*.yml"), recursive=True)
     yaml_files.extend(glob.glob(os.path.join(dbt_project_path, "**/*.yaml"), recursive=True))
     return yaml_files
 
 
-def format_suggestion(suggestion):
+def format_suggestion(suggestion: str):
     html_suggestion = ""
 
     escaped_suggestion = html.escape(suggestion)
