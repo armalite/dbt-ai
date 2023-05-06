@@ -12,8 +12,8 @@ pip := $(venv)/bin/pip
 
 $(pip):
 # create venv using system python even when another venv is active
-	PATH=$${PATH#$${VIRTUAL_ENV}/bin:} python3 -m venv --clear $(venv)
-	$(venv)/bin/python --version
+	PATH=$${PATH#$${VIRTUAL_ENV}/bin:} python3.10 -m venv --clear $(venv)
+	$(venv)/bin/python3.10 --version
 	$(pip) install pip~=23.0 wheel~=0.40
 
 $(venv): pyproject.toml $(pip)
