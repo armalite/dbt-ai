@@ -1,7 +1,7 @@
 import os
 import tempfile
 import pytest
-from your_module import DbtModelProcessor  # Replace 'your_module' with the actual module name containing DbtModelProcessor
+from dbt_ai.dbt import DbtModelProcessor  # 
 
 # Sample data for testing
 sample_yaml_content = """
