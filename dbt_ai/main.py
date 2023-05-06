@@ -21,7 +21,7 @@ def main():
 
     print(f"Generated improvement suggestions report at: {output_path}")
 
-    models_without_metadata = [model["name"] for model in models if not model["has_metadata"]]
+    models_without_metadata = [model["name"] for model in models if not model["metadata_exists"]]
 
     if models_without_metadata:
         print("\nThe following models are missing metadata:")
