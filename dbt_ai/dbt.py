@@ -4,7 +4,7 @@ import os
 import yaml
 
 from dbt_ai.ai import generate_response
-from dbt_ai.helper import find_yaml_files
+from dbt_ai.helper import find_yaml_files, format_suggestions
 
 
 class DbtModelProcessor:
@@ -44,14 +44,15 @@ class DbtModelProcessor:
 
         has_metadata = self.model_has_metadata(model_name)
         if self.api_key_available:
-            suggestions = self.suggest_dbt_model_improvements(model_file, model_name)
+            raw_suggestions = self.suggest_dbt_model_improvements(model_file, model_name)
+            formatted_suggestions = format_suggestions(raw_suggestions)
         else:
-            suggestions = []
+            formatted_suggestions = []
 
         return {
             "model_name": model_name,
             "metadata_exists": has_metadata,
-            "suggestions": [suggestions],
+            "suggestions": [formatted_suggestions],
         }
 
     def process_dbt_models(self) -> list:
