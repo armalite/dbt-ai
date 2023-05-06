@@ -3,12 +3,12 @@
 This application helps you improve your dbt models by providing suggestions using the OpenAI GPT-3.5 model.
 
 ## Installation
-NOTE: Production PIP MODULE IS NOT YET AVAILABLE
-
-The test application can be installed from TestPypi:
+You can install the application here
 ```bash
-pip install -i https://test.pypi.org/simple/ dbt-ai==0.0.3
+pip install dbt-ai==0.0.4a0
 ```
+
+WARNING: This is an early phase application that may still contain bugs
 
 ## Prerequisites
  - In order to benefit from AI recommendations, you need your own OpenAI API Key with the initial version of this application

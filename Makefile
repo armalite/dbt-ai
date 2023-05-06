@@ -20,4 +20,4 @@ publish-test:
 
 
 publish-prod:
-	twine upload dist/*
+	@twine upload --verbose --username $(PYPI_USERNAME) --password $(PYPI_PASSWORD_PROD) dist/*
