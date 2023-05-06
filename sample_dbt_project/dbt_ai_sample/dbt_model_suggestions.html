@@ -13,17 +13,17 @@
     
         <div class="model">
             <h2></h2>
-            <p>["Great job on using `ref` to reference `my_first_dbt_model` instead of hardcoding the table name! Here are a few suggestions to improve the syntax and code structure of your model:\n\n1. Add a schema.yml file: It's a good practice to include a schema.yml file for each model. This file defines the columns, their data types, and any constraints, making it easier for other users to understand the structure of your model.\n\n2. Use a more descriptive name: Instead of `my_second_dbt_model`, consider using a more descriptive name that reflects the purpose of the model. For example, if this model is used to filter data from `my_first_dbt_model`, you could name it something like `filtered_my"]</p>
+            <p>['Here are some suggestions to improve the my_second_dbt_model:\n\n1. Use a more descriptive name for the model: Instead of my_second_dbt_model, consider using a name that describes the purpose of the model. This will make it easier for other users to understand what the model does.\n\n2. Use ref() instead of hardcoding table names: Instead of hardcoding the name of the table']</p>
         </div>
     
         <div class="model">
             <h2></h2>
-            <p>["Here are some suggestions on how to improve your dbt model:\n\n1. Use a ref to reference the source table instead of hardcoding the table name. This will make the model more flexible and easier to maintain in case the source table name changes or if you want to switch to a different source table.\n\n```\n{{\n  config(\n    materialized = 'view'\n  )\n}}\n\nSELECT *\nFROM {{ ref('some_table') }}\nWHERE id = 1\n```\n\n2. Consider adding a schema.yml file to your project to define the schema of the source table. This will help ensure that your model is always using the latest schema of the source table and help avoid errors due to schema changes.\n\n3. Instead of using `select *"]</p>
+            <p>["Here are some suggestions to improve the my_third_dbt_model:\n\n1. Use the `ref` function to reference the table instead of hardcoding the table name. This makes the model more flexible and easier to maintain if the table name changes in the future. For example:\n\n```\nselect *\nfrom {{ ref('SOME_TABLE') }}\nwhere id = 1\n```\n\n2. Consider adding"]</p>
         </div>
     
         <div class="model">
             <h2></h2>
-            <p>['Great start on your first dbt model! Here are some suggestions to improve your syntax, code structure, and dbt best practices:\n\n1. Instead of hardcoding the table name in your model, consider using the `ref` function to reference the source data from a separate source model. This will help keep your code flexible and maintainable over time.\n\n2. Consider adding a schema and table name to your source data. This will help ensure that your data is organized and easy to access.\n\n3. Consider adding comments to your model to describe what it is doing and any assumptions or caveats about the data.\n\n4. Consider using a `when` clause in your `union all` statement to ensure that only valid rows are included in your source']</p>
+            <p>["Here are some suggestions to improve the my_first_dbt_model:\n\n1. Use the `ref` function instead of hardcoding table names. This will make the model more flexible and easier to maintain in case the source table name changes. For example, you can create a reference to the source table like this: `{{ ref('source_data') }}`.\n\n2. Add a schema to the source table"]</p>
         </div>
     
 </body>

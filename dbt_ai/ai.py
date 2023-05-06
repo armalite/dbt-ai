@@ -8,9 +8,9 @@ def generate_response(prompt) -> list:
             {"role": "system", "content": "You are a helpful assistant that suggests improvements to dbt models."},
             {"role": "user", "content": prompt},
         ],
-        max_tokens=150,
+        max_tokens=80,
         n=1,
         stop=None,
-        temperature=0.7,
+        temperature=0.3,
     )
     return response.choices[0].message["content"].strip()

@@ -1,5 +1,5 @@
 from jinja2 import Environment, FileSystemLoader
-
+import webbrowser 
 
 def generate_html_report(models, output_path):
     env = Environment(loader=FileSystemLoader("dbt_ai/templates"))
@@ -8,3 +8,6 @@ def generate_html_report(models, output_path):
     rendered_report = template.render(models=models)
     with open(output_path, "w") as f:
         f.write(rendered_report)
+
+    # Open the report in a new browser tab
+    webbrowser.open(output_path)
