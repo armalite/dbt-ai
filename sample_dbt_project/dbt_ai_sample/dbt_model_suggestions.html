@@ -103,11 +103,12 @@
                 <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
 
 <ul>
-<li>Consider giving this model a more descriptive name that reflects its purpose and contents.</li>
-<li>Use a <code>ref</code> statement to reference the <code>my_first_dbt_model</code> instead of hardcoding the table name. This will make your code more modular and easier to maintain.</li>
-<li>Consider adding a comment to explain the purpose of this model and how it fits into the broader data pipeline.</li>
-<li>If the <code>id</code> column is a primary key, consider adding a <code>limit 1</code> statement to ensure that only one row is returned. This can improve query performance and prevent unexpected results if multiple rows match the <code>where</code> condition.</li>
-<li>Consider adding additional transformations or calculations to this model to derive new insights or create more useful outputs.</li>
+<li>Use a more descriptive name for the model that reflects its purpose.</li>
+<li>Use a <code>ref</code> function to reference the <code>my_first_dbt_model</code> instead of hardcoding the table name. This will make the model more flexible and easier to maintain.</li>
+<li>Consider adding a comment to explain the purpose of the model and any assumptions made.</li>
+<li>Use explicit column names instead of <code>*</code> to make the query more readable and avoid potential issues with column ordering.</li>
+<li>Consider adding a <code>limit</code> clause to the query to avoid returning a large number of rows unnecessarily.</li>
+<li>Consider adding a <code>where</code> clause to the <code>ref</code> function to filter the rows returned by <code>my_first_dbt_model</code> before applying the <code>where</code> clause in this model. This can improve performance and reduce the amount of data processed.</li>
 </ul>
 </p>
             </div>
