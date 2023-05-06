@@ -1,7 +1,7 @@
 # flake8: noqa
 
 # tests/conftest.py
-from fixtures.py import dbt_project, mock_generate_response
+from dbt_ai.fixtures import dbt_project, mock_generate_response
 
 
 def placeholder():
