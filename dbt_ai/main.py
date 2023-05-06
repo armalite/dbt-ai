@@ -12,10 +12,10 @@ def main() -> None:
     args = parser.parse_args()
 
     processor = DbtModelProcessor(args.dbt_project_path)
-    models = processor.process_dbt_models()
+    models, missing_metadata = processor.process_dbt_models()
 
     output_path = os.path.join(args.dbt_project_path, "dbt_model_suggestions.html")
-    generate_html_report(models, output_path)
+    generate_html_report(models, output_path, missing_metadata)
 
     print(f"Generated improvement suggestions report at: {output_path}")
 

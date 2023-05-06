@@ -54,8 +54,14 @@ class DbtModelProcessor:
             "suggestions": raw_suggestion,
         }
 
-    def process_dbt_models(self) -> list:
+    def process_dbt_models(self):
         model_files = glob.glob(os.path.join(self.dbt_project_path, "models/**/*.sql"), recursive=True)
         models = [self.process_model(model_file) for model_file in model_files]
+        missing_metadata = []
 
-        return models
+        # Check for models without metadata
+        for model in models:
+            if not model['metadata_exists']:
+                missing_metadata.append(model['model_name'])
+        
+        return models, missing_metadata

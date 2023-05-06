@@ -54,15 +54,49 @@
             border-radius: 3px;
             font-family: Consolas, Monaco, 'Andale Mono', monospace;
         }
+
+        /* Missing metadata style */
+        .missing-metadata {
+            margin-top: 40px;
+        }
+
+        /* Missing metadata header style */
+        .missing-metadata h2 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        /* Missing metadata list style */
+        .missing-metadata ul {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0 0 0 20px;
+        }
     </style>
 </head>
 <body>
     <h1>DBT Model Improvement Suggestions</h1>
-    {% for model in models %}
-        <div class="model">
-            <h2>{{ model.name }}</h2>
-            <p>{{ model.suggestions|markdown }}</p>
+        <h2>AI Generated Suggestions</h2>
+        {% for model in models %}
+            <div class="model">
+                <h2>{{ model.model_name }}</h2>
+                    <p>{{ model.suggestions|markdown }}</p>
+            </div>
+        {% endfor %}
+        <div class="missing-metadata">
+            <h2>Models Missing Metadata</h2>
+            {% if missing_metadata %}
+                <ul>
+                    {% for missing_meta_model in missing_metadata %}
+                        <li>{{ missing_meta_model }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>All models have metadata.</p>
+            {% endif %}
         </div>
-    {% endfor %}
 </body>
 </html>

@@ -36,7 +36,7 @@ def test_process_model(mock_generate_response, dbt_project):
 def test_process_dbt_models(mock_generate_response, dbt_project):
     processor = DbtModelProcessor(dbt_project)
 
-    models = processor.process_dbt_models()
+    models, missing_metadata = processor.process_dbt_models()
 
     assert len(models) == 1
 

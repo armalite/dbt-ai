@@ -7,12 +7,12 @@ def markdown_filter(value):
     return markdown2.markdown(value, extras=["fenced-code-blocks"])
 
 
-def generate_html_report(models, output_path):
+def generate_html_report(models, output_path, missing_metadata: list[str]):
     env = Environment(loader=FileSystemLoader("dbt_ai/templates"))
     env.filters['markdown'] = markdown_filter
     template = env.get_template("report_template.html")
 
-    rendered_report = template.render(models=models)
+    rendered_report = template.render(models=models, missing_metadata=missing_metadata)
     with open(output_path, "w") as f:
         f.write(rendered_report)
 

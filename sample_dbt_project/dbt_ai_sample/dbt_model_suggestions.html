@@ -54,51 +54,84 @@
             border-radius: 3px;
             font-family: Consolas, Monaco, 'Andale Mono', monospace;
         }
+
+        /* Missing metadata style */
+        .missing-metadata {
+            margin-top: 40px;
+        }
+
+        /* Missing metadata header style */
+        .missing-metadata h2 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        /* Missing metadata list style */
+        .missing-metadata ul {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0 0 0 20px;
+        }
     </style>
 </head>
 <body>
     <h1>DBT Model Improvement Suggestions</h1>
-    
-        <div class="model">
-            <h2></h2>
-            <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
+        <div class="missing-metadata">
+            <h2>Models Missing Metadata</h2>
+            
+                <ul>
+                    
+                        <li>my_third_dbt_model</li>
+                    
+                </ul>
+            
+        </div>
+        <h2>AI Generated Suggestions</h2>
+        
+            <div class="model">
+                <h2>my_second_dbt_model</h2>
+                    <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
 
 <ul>
-<li>Use a more descriptive name for the model that reflects its purpose and contents.</li>
+<li>Use a more descriptive name for the model that reflects its purpose.</li>
 <li>Use the <code>ref</code> function to reference the <code>my_first_dbt_model</code> instead of hardcoding the table name. This will make the model more flexible and easier to maintain.</li>
-<li>Consider adding a comment to the model to explain its purpose and any important details about the query.</li>
-<li>If the <code>id</code> column is a primary key, consider using the <code>limit</code> function instead of the <code>where</code> clause to improve performance. For example: <code>select * from {{ ref('my_first_dbt_model') }} limit 1</code>.</li>
-<li>If the <code>id</code> column is not a primary key, consider adding an index to improve query performance.</li>
+<li>Consider adding a comment to the model to explain its purpose and any assumptions made.</li>
+<li>If the <code>id</code> column is unique, consider using <code>limit 1</code> instead of <code>where id = 1</code> to improve performance.</li>
+<li>If the <code>id</code> column is not unique, consider adding an <code>order by</code> clause to ensure consistent results.</li>
 </ul>
 </p>
-        </div>
-    
-        <div class="model">
-            <h2></h2>
-            <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
+            </div>
+        
+            <div class="model">
+                <h2>my_third_dbt_model</h2>
+                    <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using <code>ref</code> instead of hardcoding the table name in the <code>from</code> clause. This will make your model more modular and easier to maintain in case the table name changes in the future. </li>
-<li>Add a description to the model using the <code>{{ doc() }}</code> macro to provide context and information about the purpose of the model. </li>
-<li>Consider adding a schema test to ensure that the <code>id</code> column exists in the table. This will help catch errors early on and ensure that the model is always working with the expected schema. </li>
-<li>If the <code>id</code> column is a primary key, consider adding a primary key constraint to the model using the <code>{{ config(...) }}</code> macro. This will help ensure data integrity and improve query performance. </li>
-<li>If the <code>id</code> column is not a primary key, consider adding an index to the column using the <code>{{ config(...) }}</code> macro. This will help improve query performance.</li>
+<li>Consider using <code>ref</code> instead of hardcoding the table name in the <code>from</code> clause. This will make your model more flexible and easier to maintain in case the table name changes in the future. </li>
+<li>Use a more descriptive name for the table instead of <code>SOME_TABLE</code>. This will make it easier for other users to understand what the table contains. </li>
+<li>Consider adding a comment to the model to explain its purpose and any assumptions made in the SQL code. This will make it easier for other users to understand the model's purpose and how it fits into the overall data pipeline. </li>
+<li>If possible, add a <code>limit</code> clause to the SQL code to limit the number of rows returned. This will make it easier to test the model and avoid accidentally running a query that returns a large number of rows.</li>
 </ul>
 </p>
-        </div>
-    
-        <div class="model">
-            <h2></h2>
-            <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
+            </div>
+        
+            <div class="model">
+                <h2>my_first_dbt_model</h2>
+                    <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
 
 <ul>
 <li>Instead of hardcoding the source data in the model, consider creating a separate source file that defines the source data as a table or view. This will make it easier to reuse the source data in other models and ensure consistency across your project.</li>
 <li>Use the <code>ref</code> function to reference the source data instead of hardcoding the table name. This will make your code more maintainable and allow dbt to automatically track dependencies between models.</li>
-<li>Consider adding a schema declaration to the <code>config</code> block to ensure that the model is created in the correct schema.</li>
-<li>Use a more descriptive name for the model that reflects its purpose and contents. This will make it easier to understand the purpose of the model when looking at the dbt documentation or running dbt commands.</li>
+<li>Consider adding a schema to the source data table/view to avoid naming conflicts with other tables/views in your database.</li>
+<li>Use a more descriptive name for the model that reflects its purpose and contents. This will make it easier to understand and navigate your project as it grows.</li>
+<li>Consider adding comments to the model to explain its purpose and any assumptions or limitations of the data. This will make it easier for others to understand and use your code.</li>
 </ul>
 </p>
-        </div>
-    
+            </div>
+        
+
 </body>
 </html>
