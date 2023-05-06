@@ -58,12 +58,16 @@ def test_process_model(dbt_project):
     processor = DbtModelProcessor(dbt_project)
     model_file = os.path.join(dbt_project, "models", "model1.sql")
 
+    # Mock the generate_response method to return a fixed suggestion
+    processor.generate_response = MagicMock(return_value="Use ref() function instead of hardcoding table names.")
+
     result = processor.process_model(model_file)
 
     assert result["name"] == "model1"
     assert result["has_metadata"]
-    # Replace 'None' with the actual expected output format 
-    assert result["suggestions"] == None
+    assert len(result["suggestions"]) == 1
+    assert result["suggestions"][0] == "Use ref() function instead of hardcoding table names."
+
 
 def test_process_dbt_models(dbt_project):
     processor = DbtModelProcessor(dbt_project)
