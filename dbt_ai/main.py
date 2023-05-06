@@ -1,15 +1,14 @@
-import sys
-from typing import List
-import os
-from jinja2 import Environment, FileSystemLoader
 import argparse
-import glob
-from helper import find_yaml_files, generate_response
+import os
+
 from dbt import DbtModelProcessor
 from report import generate_html_report
 
-def main():
-    parser = argparse.ArgumentParser(description="Generate improvement suggestions and check metadata coverage for dbt models")
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Generate improvement suggestions and check metadata coverage for dbt models"
+    )
     parser.add_argument("dbt_project_path", help="Path to the dbt project directory")
     args = parser.parse_args()
 
@@ -30,8 +29,6 @@ def main():
     else:
         print("\nAll models have associated metadata.")
 
+
 if __name__ == "__main__":
     main()
-
-
-

@@ -1,9 +1,4 @@
-import sys
-from typing import List
-import os
 from jinja2 import Environment, FileSystemLoader
-import argparse
-import glob
 
 
 def generate_html_report(models, output_path):

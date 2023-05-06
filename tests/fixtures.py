@@ -1,5 +1,7 @@
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
+
 from dbt_ai.dbt import DbtModelProcessor
 
 sample_sql_content = "SELECT * FROM table1;"

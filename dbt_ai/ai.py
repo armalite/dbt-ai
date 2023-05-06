@@ -1,7 +1,7 @@
 import openai
 
 
-def generate_response(prompt):
+def generate_response(prompt) -> list:
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -13,4 +13,4 @@ def generate_response(prompt):
         stop=None,
         temperature=0.7,
     )
-    return response.choices[0].message['content'].strip()
+    return response.choices[0].message["content"].strip()

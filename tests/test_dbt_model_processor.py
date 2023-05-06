@@ -1,5 +1,4 @@
 import os
-from unittest.mock import MagicMock
 
 from dbt_ai.dbt import DbtModelProcessor  #
 
