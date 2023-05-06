@@ -6,11 +6,17 @@ This application helps you improve your dbt models by providing suggestions usin
 
 To install the application, run the following command:
 
-NOTE: PIP MODULE IS NOT YET AVAILABLE
+NOTE: Production PIP MODULE IS NOT YET AVAILABLE
 
+The test application can be installed from TestPypi:
 ```bash
-pip install dbt-ai
+pip install -i https://test.pypi.org/simple/ dbt-ai==0.0.1
 ```
+
+## Prerequisites
+ - In order to benefit from AI recommendations, you need your own OpenAI API Key with the initial version of this application
+ - Ideally you already have dbt project to test this out on
+
 
 ## Usage
  1. Set up your OpenAI API key as an environment variable:
@@ -18,17 +24,16 @@ pip install dbt-ai
     export OPENAI_API_KEY="your_openai_api_key"
 ```
 
- 2. Run the application within the root directory of your dbt project:
+ 2. Run the application passing in the path to your dbt project:
 ```bash
-    dbt-ai
+    dbt-ai path/to/dbt/project
 ```
 
-The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as suggestions_report.html in the current directory.
+Please allow some time for the AI model to process your dbt models. The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as dbt_model_suggestions.html within the dbt project directory. Upon generation of the report, it will be opened in a new browser tab.
 
 ## Generated Report
 This shows an example of a report generated from a DBT project containing 3 models
 ![](images/example_report.png?raw=true)
-
 
 
 ## Contributing

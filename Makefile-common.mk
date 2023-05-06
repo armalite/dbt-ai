@@ -48,9 +48,9 @@ test: $(venv)
 	$(venv)/bin/pytest
 
 ## build python distribution
-dist: $(venv)
-	rm -rf build dist *.egg-info
-	$(venv)/bin/python -m build --sdist --wheel
+#dist: $(venv)
+#	rm -rf build dist *.egg-info
+#	$(venv)/bin/python -m build --sdist --wheel
 
 ## publish to pypi
 publish: $(venv)
