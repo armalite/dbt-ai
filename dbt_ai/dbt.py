@@ -6,7 +6,8 @@ import os
 from jinja2 import Environment, FileSystemLoader
 import argparse
 import glob
-from dbt_ai.helper import find_yaml_files, generate_response
+from dbt_ai.helper import find_yaml_files
+from dbt_ai.ai import generate_response
 
 
 class DbtModelProcessor:

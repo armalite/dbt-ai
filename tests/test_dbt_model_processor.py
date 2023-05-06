@@ -3,37 +3,9 @@ import tempfile
 import pytest
 from dbt_ai.dbt import DbtModelProcessor  # 
 from unittest.mock import MagicMock
+from tests.fixtures import dbt_project
 
-# Sample data for testing
-sample_yaml_content = """
-models:
-  - name: model1
-    description: Example model 1
-  - name: model2
-    description: Example model 2
-"""
 
-sample_sql_content = "SELECT * FROM table1;"
-
-@pytest.fixture
-def dbt_project(tmp_path):
-    models_path = tmp_path / "models"
-    models_path.mkdir()
-
-    yaml_file = tmp_path / "schema.yml"
-    yaml_file.write_text(sample_yaml_content)
-
-    sql_file = models_path / "model1.sql"
-    sql_file.write_text(sample_sql_content)
-
-    return tmp_path
-
-def test_find_yaml_files(dbt_project):
-    processor = DbtModelProcessor(dbt_project)
-    yaml_files = processor.find_yaml_files()
-
-    assert len(yaml_files) == 1
-    assert os.path.basename(yaml_files[0]) == "schema.yml"
 
 def test_model_has_metadata(dbt_project):
     processor = DbtModelProcessor(dbt_project)
