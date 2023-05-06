@@ -4,7 +4,6 @@ import os
 from dbt_ai.dbt import DbtModelProcessor
 from dbt_ai.report import generate_html_report
 
-
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate improvement suggestions and check metadata coverage for dbt models"

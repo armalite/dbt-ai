@@ -30,7 +30,7 @@ def test_process_model(mock_generate_response, dbt_project):
     assert result["model_name"] == "model1"
     assert result["metadata_exists"]
     assert len(result["suggestions"]) == 1
-    assert result["suggestions"][0][0] == "Use ref() function instead of hardcoding table names."
+    assert result["suggestions"][0] == "Use ref() function instead of hardcoding table names."
 
 
 def test_process_dbt_models(mock_generate_response, dbt_project):
@@ -44,4 +44,4 @@ def test_process_dbt_models(mock_generate_response, dbt_project):
     assert model["model_name"] == "model1"
     assert model["metadata_exists"]
     assert len(model["suggestions"]) == 1
-    assert model["suggestions"][0][0] == "Use ref() function instead of hardcoding table names."
+    assert model["suggestions"][0] == "Use ref() function instead of hardcoding table names."

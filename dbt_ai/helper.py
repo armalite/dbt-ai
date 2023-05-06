@@ -9,12 +9,11 @@ def find_yaml_files(dbt_project_path):
     return yaml_files
 
 
-def format_suggestions(suggestions):
-    html_suggestions = []
+def format_suggestion(suggestion):
+    html_suggestion = ""
 
-    for suggestion in suggestions:
-        escaped_suggestion = html.escape(suggestion)
-        formatted_suggestion = escaped_suggestion.replace("\n", "<br>")
-        html_suggestions.append(formatted_suggestion)
+    escaped_suggestion = html.escape(suggestion)
+    formatted_suggestion = escaped_suggestion.replace("\n", "<br>")
+    html_suggestion = formatted_suggestion
 
-    return html_suggestions
+    return html_suggestion

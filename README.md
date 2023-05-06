@@ -25,6 +25,12 @@ pip install dbt-ai
 
 The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as suggestions_report.html in the current directory.
 
+## Generated Report
+This shows an example of a report generated from a DBT project containing 3 models
+![](images/example_report.png?raw=true)
+
+
+
 ## Contributing
 We welcome contributions to the project! Please feel free to open issues or submit pull requests with your improvements and suggestions.
 

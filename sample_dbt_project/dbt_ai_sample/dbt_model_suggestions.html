@@ -3,27 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dbt Model Improvement Suggestions</title>
+    <title>DBT Model Improvement Suggestions</title>
     <style>
         /* Add your custom CSS styles here */
+
+        /* Body style */
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        /* Header style */
+        h1 {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin: 40px 0 20px 0;
+            color: #333;
+        }
+
+        /* Model style */
+        .model {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Model name style */
+        .model h2 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        /* Suggestions style */
+        .model p {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        /* Markdown style */
+        .model p code {
+            background-color: #f2f2f2;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
     </style>
 </head>
 <body>
-    <h1>dbt Model Improvement Suggestions</h1>
+    <h1>DBT Model Improvement Suggestions</h1>
     
         <div class="model">
             <h2></h2>
-            <p>['Here are some suggestions to improve the my_second_dbt_model:\n\n1. Use a more descriptive name for the model: Instead of my_second_dbt_model, consider using a name that describes the purpose of the model. This will make it easier for other users to understand what the model does.\n\n2. Use ref() instead of hardcoding table names: Instead of hardcoding the name of the table']</p>
+            <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
+
+<ul>
+<li>Use a more descriptive name for the model that reflects its purpose and contents.</li>
+<li>Use the <code>ref</code> function to reference the <code>my_first_dbt_model</code> instead of hardcoding the table name. This will make the model more flexible and easier to maintain.</li>
+<li>Consider adding a comment to the model to explain its purpose and any important details about the query.</li>
+<li>If the <code>id</code> column is a primary key, consider using the <code>limit</code> function instead of the <code>where</code> clause to improve performance. For example: <code>select * from {{ ref('my_first_dbt_model') }} limit 1</code>.</li>
+<li>If the <code>id</code> column is not a primary key, consider adding an index to improve query performance.</li>
+</ul>
+</p>
         </div>
     
         <div class="model">
             <h2></h2>
-            <p>["Here are some suggestions to improve the my_third_dbt_model:\n\n1. Use the `ref` function to reference the table instead of hardcoding the table name. This makes the model more flexible and easier to maintain if the table name changes in the future. For example:\n\n```\nselect *\nfrom {{ ref('SOME_TABLE') }}\nwhere id = 1\n```\n\n2. Consider adding"]</p>
+            <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
+
+<ul>
+<li>Consider using <code>ref</code> instead of hardcoding the table name in the <code>from</code> clause. This will make your model more modular and easier to maintain in case the table name changes in the future. </li>
+<li>Add a description to the model using the <code>{{ doc() }}</code> macro to provide context and information about the purpose of the model. </li>
+<li>Consider adding a schema test to ensure that the <code>id</code> column exists in the table. This will help catch errors early on and ensure that the model is always working with the expected schema. </li>
+<li>If the <code>id</code> column is a primary key, consider adding a primary key constraint to the model using the <code>{{ config(...) }}</code> macro. This will help ensure data integrity and improve query performance. </li>
+<li>If the <code>id</code> column is not a primary key, consider adding an index to the column using the <code>{{ config(...) }}</code> macro. This will help improve query performance.</li>
+</ul>
+</p>
         </div>
     
         <div class="model">
             <h2></h2>
-            <p>["Here are some suggestions to improve the my_first_dbt_model:\n\n1. Use the `ref` function instead of hardcoding table names. This will make the model more flexible and easier to maintain in case the source table name changes. For example, you can create a reference to the source table like this: `{{ ref('source_data') }}`.\n\n2. Add a schema to the source table"]</p>
+            <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
+
+<ul>
+<li>Instead of hardcoding the source data in the model, consider creating a separate source file that defines the source data as a table or view. This will make it easier to reuse the source data in other models and ensure consistency across your project.</li>
+<li>Use the <code>ref</code> function to reference the source data instead of hardcoding the table name. This will make your code more maintainable and allow dbt to automatically track dependencies between models.</li>
+<li>Consider adding a schema declaration to the <code>config</code> block to ensure that the model is created in the correct schema.</li>
+<li>Use a more descriptive name for the model that reflects its purpose and contents. This will make it easier to understand the purpose of the model when looking at the dbt documentation or running dbt commands.</li>
+</ul>
+</p>
         </div>
     
 </body>

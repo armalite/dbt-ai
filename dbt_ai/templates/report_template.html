@@ -3,17 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dbt Model Improvement Suggestions</title>
+    <title>DBT Model Improvement Suggestions</title>
     <style>
         /* Add your custom CSS styles here */
+
+        /* Body style */
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        /* Header style */
+        h1 {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin: 40px 0 20px 0;
+            color: #333;
+        }
+
+        /* Model style */
+        .model {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Model name style */
+        .model h2 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        /* Suggestions style */
+        .model p {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        /* Markdown style */
+        .model p code {
+            background-color: #f2f2f2;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
     </style>
 </head>
 <body>
-    <h1>dbt Model Improvement Suggestions</h1>
+    <h1>DBT Model Improvement Suggestions</h1>
     {% for model in models %}
         <div class="model">
             <h2>{{ model.name }}</h2>
-            <p>{{ model.suggestions }}</p>
+            <p>{{ model.suggestions|markdown }}</p>
         </div>
     {% endfor %}
 </body>
