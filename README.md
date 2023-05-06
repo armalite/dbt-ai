@@ -5,7 +5,7 @@ This application helps you improve your dbt models by providing suggestions usin
 ## Installation
 You can install the application here
 ```bash
-pip install dbt-ai==0.0.4a0
+pip install dbt-ai==0.0.5a0
 ```
 
 WARNING: This is an early phase application that may still contain bugs

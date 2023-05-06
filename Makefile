@@ -16,7 +16,7 @@ dist:
 	python -m build
 
 publish-test:
-	@twine upload --verbose --repository-url https://test.pypi.org/legacy/ --username $(PYPI_USERNAME) --password $(PYPI_PASSWORD) dist/*
+	@twine upload --verbose --repository-url https://test.pypi.org/legacy/ --username $(PYPI_USERNAME) --password $(PYPI_PASSWORD_TEST) dist/*
 
 
 publish-prod:
