@@ -4,25 +4,32 @@ import os
 from jinja2 import Environment, FileSystemLoader
 import argparse
 import glob
-
+from helper import find_yaml_files, generate_response
+from dbt import model_has_metadata, process_dbt_models
+from report import generate_html_report
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate improvement suggestions for dbt models")
+    parser = argparse.ArgumentParser(description="Generate improvement suggestions and check metadata coverage for dbt models")
     parser.add_argument("dbt_project_path", help="Path to the dbt project directory")
     args = parser.parse_args()
 
-    model_files = glob.glob(os.path.join(args.dbt_project_path, "models/**/*.sql"), recursive=True)
-    models = []
-
-    for model_file in model_files:
-        model_name = os.path.basename(model_file).replace(".sql", "")
-        suggestions = suggest_dbt_model_improvements(model_file, model_name)
-        models.append({"name": model_name, "suggestions": suggestions})
+    models = process_dbt_models(args.dbt_project_path)
 
     output_path = os.path.join(args.dbt_project_path, "dbt_model_suggestions.html")
     generate_html_report(models, output_path)
 
     print(f"Generated improvement suggestions report at: {output_path}")
 
+    models_without_metadata = [model["name"] for model in models if not model["has_metadata"]]
+
+    if models_without_metadata:
+        print("\nThe following models are missing metadata:")
+        for model_name in models_without_metadata:
+            print(f"  - {model_name}")
+    else:
+        print("\nAll models have associated metadata.")
+
 if __name__ == "__main__":
     main()
+
+
