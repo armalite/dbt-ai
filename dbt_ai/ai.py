@@ -10,7 +10,8 @@ def generate_response(prompt) -> list:
             followed by a new line. Surround the model name with ` so it is rendered like code and that underscores in the name dont get rendered. \
             Keep your suggestions fairly concise and easy to read. Order your suggestions in a logical order. \
             Add a new line in between list entries in your suggestions to help the application render it in html more nicely. Make sure \
-            this is done for all the model suggestions. Favor using new lines for every point - do not randomize the formatting"},
+            this is done for all the model suggestions. Favor using new lines for every point - do not randomize the formatting. \
+             "},
             {"role": "user", "content": prompt},
         ],
         max_tokens=400,
