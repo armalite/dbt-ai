@@ -1,8 +1,8 @@
 import argparse
 import os
 
-from dbt import DbtModelProcessor
-from report import generate_html_report
+from dbt_ai.dbt import DbtModelProcessor
+from dbt_ai.report import generate_html_report
 
 
 def main() -> None:

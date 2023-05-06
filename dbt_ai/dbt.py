@@ -32,7 +32,7 @@ class DbtModelProcessor:
 
                     if yaml_content:
                         for item in yaml_content.get("models", []):
-                            if item.get("name") == model_name:
+                            if isinstance(item, dict) and item.get("name") == model_name:
                                 return True
                 except yaml.YAMLError as e:
                     print(f"Error parsing YAML file {yaml_file}: {e}")
