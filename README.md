@@ -20,9 +20,10 @@ pip install dbt-ai
 
  2. Run the application within the root directory of your dbt project:
 ```bash
-dbt-ai
+    dbt-ai
 ```
-    The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as suggestions_report.html in the current directory.
+
+The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as suggestions_report.html in the current directory.
 
 ## Contributing
 We welcome contributions to the project! Please feel free to open issues or submit pull requests with your improvements and suggestions.
