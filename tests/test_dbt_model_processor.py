@@ -2,6 +2,7 @@ import os
 import tempfile
 import pytest
 from dbt_ai.dbt import DbtModelProcessor  # 
+from unittest.mock import MagicMock
 
 # Sample data for testing
 sample_yaml_content = """
@@ -45,8 +46,13 @@ def test_suggest_dbt_model_improvements(dbt_project):
     processor = DbtModelProcessor(dbt_project)
     model_file = os.path.join(dbt_project, "models", "model1.sql")
 
-    # You should replace 'None' with the actual expected output format of your suggestions
-    assert processor.suggest_dbt_model_improvements(model_file, "model1") == None
+    # Mock the generate_response method to return a fixed suggestion
+    processor.generate_response = MagicMock(return_value="Use ref() function instead of hardcoding table names.")
+
+    suggestions = processor.suggest_dbt_model_improvements(model_file, "model1")
+
+    assert len(suggestions) == 1
+    assert suggestions[0] == "Use ref() function instead of hardcoding table names."
 
 def test_process_model(dbt_project):
     processor = DbtModelProcessor(dbt_project)
@@ -56,7 +62,7 @@ def test_process_model(dbt_project):
 
     assert result["name"] == "model1"
     assert result["has_metadata"]
-    # You should replace 'None' with the actual expected output format of your suggestions
+    # Replace 'None' with the actual expected output format 
     assert result["suggestions"] == None
 
 def test_process_dbt_models(dbt_project):
@@ -68,5 +74,5 @@ def test_process_dbt_models(dbt_project):
     model = models[0]
     assert model["name"] == "model1"
     assert model["has_metadata"]
-    # You should replace 'None' with the actual expected output format of your suggestions
+    # replace 'None' with the actual expected output format 
     assert model["suggestions"] == None
