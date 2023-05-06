@@ -16,6 +16,7 @@ WARNING: This is an early phase application that may still contain bugs
     - Trial version gives you a certain amount of credits allowing you to make many API calls
     - Usage beyond the trial credits require billing details. [API usage pricing](https://openai.com/pricing) provides more info
  - Ideally you already have dbt project to test this out on
+ - Python 3.10 or greater is required
 
 
 ## Usage
