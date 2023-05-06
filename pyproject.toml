@@ -32,6 +32,7 @@ exclude = ["tests*"]
 # use PyCharm default line length of 120
 [tool.black]
 line-length = 120
+exclude = "conftest.py"
 
 [tool.ruff]
 line-length = 120
