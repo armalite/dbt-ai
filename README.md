@@ -3,18 +3,20 @@
 This application helps you improve your dbt models by providing suggestions using the OpenAI GPT-3.5 model.
 
 ## Installation
+NOTE: Production PIP MODULE IS NOT YET AVAILABLE
 
 To install the application, run the following command:
 
-NOTE: Production PIP MODULE IS NOT YET AVAILABLE
-
 The test application can be installed from TestPypi:
 ```bash
-pip install -i https://test.pypi.org/simple/ dbt-ai==0.0.1
+pip install -i https://test.pypi.org/simple/ dbt-ai==0.0.2
 ```
 
 ## Prerequisites
  - In order to benefit from AI recommendations, you need your own OpenAI API Key with the initial version of this application
+    - Once you sign up to [OpenAI](https://openai.com/product) you can create an API key. 
+    - Trial version gives you a certain amount of credits allowing you to make many API calls
+    - Usage beyond the trial credits require billing details. [API usage pricing](https://openai.com/pricing) provides more info
  - Ideally you already have dbt project to test this out on
 
 
@@ -33,7 +35,7 @@ Please allow some time for the AI model to process your dbt models. The applicat
 
 ## Generated Report
 This shows an example of a report generated from a DBT project containing 3 models
-![](images/example_report.png?raw=true)
+![](images/ai_generated_dbt_report.png?raw=true)
 
 
 ## Contributing

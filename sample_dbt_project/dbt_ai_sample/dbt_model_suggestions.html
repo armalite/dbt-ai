@@ -16,20 +16,33 @@
         }
 
         /* Header style */
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333;
+            padding: 20px;
+            color: #fff;
+        }
+
         h1 {
             font-size: 36px;
             font-weight: bold;
-            text-align: center;
-            margin: 40px 0 20px 0;
-            color: #333;
+            margin: 0;
+        }
+
+        /* Container style */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
 
         /* Model style */
         .model {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #fff;
-            padding: 20px;
             margin-bottom: 40px;
         }
 
@@ -45,19 +58,20 @@
             font-size: 16px;
             line-height: 1.5;
             color: #333;
-        }
-
-        /* Markdown style */
-        .model p code {
+            margin: 0;
+            padding: 10px 20px;
+            border-radius: 5px;
             background-color: #f2f2f2;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
         }
 
         /* Missing metadata style */
         .missing-metadata {
             margin-top: 40px;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
         }
 
         /* Missing metadata header style */
@@ -78,27 +92,29 @@
     </style>
 </head>
 <body>
-    <h1>DBT Model Improvement Suggestions</h1>
+    <header>
+        <h1>DBT Model Improvement Suggestions</h1>
+    </header>
+    <div class="container">
         <h2>AI Generated Suggestions</h2>
         
             <div class="model">
                 <h2>my_second_dbt_model</h2>
-                    <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
+                <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
 
 <ul>
-<li>Use a more descriptive name for the model that reflects its purpose.</li>
-<li>Use a <code>ref</code> function to reference the <code>my_first_dbt_model</code> instead of hardcoding the table name. This will make the model more flexible and easier to maintain.</li>
-<li>Consider adding a comment to explain the purpose of the model and any assumptions made.</li>
-<li>Use explicit column names instead of <code>*</code> to make the query more readable and avoid potential issues with column ordering.</li>
-<li>Consider adding a <code>limit</code> clause to the query to avoid returning a large number of rows unnecessarily.</li>
-<li>Consider adding a <code>where</code> clause to the <code>ref</code> function to filter the rows returned by <code>my_first_dbt_model</code> before applying the <code>where</code> clause in this model. This can improve performance and reduce the amount of data processed.</li>
+<li>Use a more descriptive name for the model that reflects its purpose and contents.</li>
+<li>Use the <code>ref</code> function to reference the <code>my_first_dbt_model</code> instead of hardcoding the table name. This will make the model more flexible and easier to maintain.</li>
+<li>Consider adding a comment to the model to explain its purpose and any important details about the query.</li>
+<li>If the <code>id</code> column is a primary key, consider using the <code>limit</code> function instead of the <code>where</code> clause to improve performance. For example: <code>select * from {{ ref('my_first_dbt_model') }} limit 1</code>.</li>
+<li>If the <code>id</code> column is not a primary key, consider adding an index to improve query performance.</li>
 </ul>
 </p>
             </div>
         
             <div class="model">
                 <h2>my_third_dbt_model</h2>
-                    <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
+                <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
 
 <ul>
 <li>Consider using <code>ref</code> instead of hardcoding the table name in the SQL query. This will make the model more flexible and easier to maintain in case the table name changes in the future. For example, you can create a <code>source</code> model that references the table and then use <code>ref('source')</code> in this model.</li>
@@ -112,7 +128,7 @@
         
             <div class="model">
                 <h2>my_first_dbt_model</h2>
-                    <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
+                <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
 
 <ul>
 <li>Instead of hardcoding the source data in the model, consider creating a separate source file that defines the source data as a table or view. This will make it easier to reuse the source data in other models and ensure consistency across the project.</li>

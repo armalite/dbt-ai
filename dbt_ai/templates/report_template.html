@@ -16,20 +16,33 @@
         }
 
         /* Header style */
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333;
+            padding: 20px;
+            color: #fff;
+        }
+
         h1 {
             font-size: 36px;
             font-weight: bold;
-            text-align: center;
-            margin: 40px 0 20px 0;
-            color: #333;
+            margin: 0;
+        }
+
+        /* Container style */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
 
         /* Model style */
         .model {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #fff;
-            padding: 20px;
             margin-bottom: 40px;
         }
 
@@ -45,19 +58,20 @@
             font-size: 16px;
             line-height: 1.5;
             color: #333;
-        }
-
-        /* Markdown style */
-        .model p code {
+            margin: 0;
+            padding: 10px 20px;
+            border-radius: 5px;
             background-color: #f2f2f2;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
         }
 
         /* Missing metadata style */
         .missing-metadata {
             margin-top: 40px;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
         }
 
         /* Missing metadata header style */
@@ -78,12 +92,15 @@
     </style>
 </head>
 <body>
-    <h1>DBT Model Improvement Suggestions</h1>
+    <header>
+        <h1>DBT Model Improvement Suggestions</h1>
+    </header>
+    <div class="container">
         <h2>AI Generated Suggestions</h2>
         {% for model in models %}
             <div class="model">
                 <h2>{{ model.model_name }}</h2>
-                    <p>{{ model.suggestions|markdown }}</p>
+                <p>{{ model.suggestions|markdown }}</p>
             </div>
         {% endfor %}
         <div class="missing-metadata">
@@ -95,7 +112,7 @@
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>All models have metadata.</p>
+                <p>All models have metadata.</
             {% endif %}
         </div>
 </body>
