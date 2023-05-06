@@ -1,10 +1,7 @@
 import os
-import tempfile
-import pytest
-from dbt_ai.dbt import DbtModelProcessor  # 
+
+from dbt_ai.dbt import DbtModelProcessor  #
 from dbt_ai.helper import find_yaml_files
-from unittest.mock import MagicMock
-from tests.fixtures import dbt_project
 
 
 def test_find_yaml_files(dbt_project):

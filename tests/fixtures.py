@@ -1,11 +1,6 @@
-
-import os
-import tempfile
 import pytest
-from dbt_ai.dbt import DbtModelProcessor  # 
-from dbt_ai.helper import find_yaml_files
-from unittest.mock import MagicMock
-
+from unittest.mock import MagicMock, patch
+from dbt_ai.dbt import DbtModelProcessor
 
 sample_sql_content = "SELECT * FROM table1;"
 
@@ -31,3 +26,10 @@ def dbt_project(tmp_path):
     sql_file.write_text(sample_sql_content)
 
     return tmp_path
+
+
+@pytest.fixture
+def mock_generate_response():
+    with patch.object(DbtModelProcessor, "suggest_dbt_model_improvements") as mock_function:
+        mock_function.return_value = ["Use ref() function instead of hardcoding table names."]
+        yield mock_function
