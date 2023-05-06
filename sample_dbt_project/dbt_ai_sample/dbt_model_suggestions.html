@@ -103,11 +103,11 @@
                 <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
 
 <ul>
-<li>Use a more descriptive name for the model that reflects its purpose and contents.</li>
-<li>Use the <code>ref</code> function to reference the <code>my_first_dbt_model</code> instead of hardcoding the table name. This will make the model more flexible and easier to maintain.</li>
-<li>Consider adding a comment to the model to explain its purpose and any important details about the query.</li>
-<li>If the <code>id</code> column is a primary key, consider using the <code>limit</code> function instead of the <code>where</code> clause to improve performance. For example: <code>select * from {{ ref('my_first_dbt_model') }} limit 1</code>.</li>
-<li>If the <code>id</code> column is not a primary key, consider adding an index to improve query performance.</li>
+<li>Consider giving this model a more descriptive name that reflects its purpose and contents.</li>
+<li>Use a <code>ref</code> statement to reference the <code>my_first_dbt_model</code> instead of hardcoding the table name. This will make your code more modular and easier to maintain.</li>
+<li>Consider adding a comment to explain the purpose of this model and how it fits into the broader data pipeline.</li>
+<li>If the <code>id</code> column is a primary key, consider adding a <code>limit 1</code> statement to ensure that only one row is returned. This can improve query performance and prevent unexpected results if multiple rows match the <code>where</code> condition.</li>
+<li>Consider adding additional transformations or calculations to this model to derive new insights or create more useful outputs.</li>
 </ul>
 </p>
             </div>
@@ -132,10 +132,9 @@
 
 <ul>
 <li>Instead of hardcoding the source data in the model, consider creating a separate source file that defines the source data as a table or view. This will make it easier to reuse the source data in other models and ensure consistency across the project.</li>
-<li>Use the <code>ref</code> function to reference the source data instead of hardcoding the table name. This will make the model more flexible and easier to maintain if the source data changes.</li>
-<li>Consider adding a schema to the source data table/view to avoid naming conflicts with other tables/views in the database.</li>
-<li>Use a more descriptive name for the model that reflects its purpose and contents. This will make it easier to understand and navigate the project as it grows.</li>
-<li>Consider adding comments to the SQL code to explain the purpose and logic of the model. This will make it easier for other users to understand and modify the code in the future.</li>
+<li>Use the <code>ref</code> function to reference the source data instead of hardcoding the table name. This will make it easier to update the source data in the future without having to update all the models that reference it.</li>
+<li>Consider adding a schema to the source data table/view to ensure that it is created in the correct schema in the target database.</li>
+<li>Consider adding a description to the model to provide context and documentation for other users who may be working with the model in the future.</li>
 </ul>
 </p>
             </div>

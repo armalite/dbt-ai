@@ -1,1 +1,2 @@
 recursive-include dbt_ai py.typed
+recursive-include dbt_ai/templates *
