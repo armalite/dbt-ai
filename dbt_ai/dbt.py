@@ -1,11 +1,12 @@
-
+import yaml
+import openai
 import sys
 from typing import List
 import os
 from jinja2 import Environment, FileSystemLoader
 import argparse
 import glob
-from helper import find_yaml_files, generate_response
+from dbt_ai.helper import find_yaml_files, generate_response
 
 
 class DbtModelProcessor:
@@ -14,10 +15,10 @@ class DbtModelProcessor:
 
     def __init__(self, dbt_project_path):
         self.dbt_project_path = dbt_project_path
-        self.yaml_files = self.find_yaml_files()
+        self.yaml_files = find_yaml_files(dbt_project_path)
 
 
-    def suggest_dbt_model_improvements(file_path, model_name):
+    def suggest_dbt_model_improvements(self, file_path, model_name):
         with open(file_path, "r") as f:
             content = f.read()
         prompt = f"Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names:"
@@ -45,7 +46,7 @@ class DbtModelProcessor:
         model_name = os.path.basename(model_file).replace(".sql", "")
 
         has_metadata = self.model_has_metadata(model_name)
-        suggestions = suggest_dbt_model_improvements(model_file, model_name)
+        suggestions = self.suggest_dbt_model_improvements(model_file, model_name)
 
         return {
             "name": model_name,

@@ -5,6 +5,7 @@ import os
 from jinja2 import Environment, FileSystemLoader
 import argparse
 import glob
+import openai
 
 
 def find_yaml_files(dbt_project_path):
@@ -14,9 +15,12 @@ def find_yaml_files(dbt_project_path):
 
 
 def generate_response(prompt):
-    response = openai.Completion.create(
-        engine="GPT-3.5",  
-        prompt=prompt,
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that suggests improvements to dbt models."},
+            {"role": "user", "content": prompt},
+        ],
         max_tokens=150,
         n=1,
         stop=None,
