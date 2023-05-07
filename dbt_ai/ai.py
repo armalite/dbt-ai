@@ -1,7 +1,7 @@
 # flake8: noqa
 
 import openai
-
+import os
 
 def generate_response(prompt) -> list:
     response = openai.ChatCompletion.create(
@@ -34,3 +34,19 @@ def generate_response(prompt) -> list:
     )
     return response.choices[0].message["content"].strip()
 
+
+def generate_dalle_image(prompt: str, image_size: str = "1024x1024"):
+
+    final_prompt = f"Draw a diagram showing lineage between dbt models using the following lineage descriptions to help: \
+                    {prompt} \
+                    "
+    response = openai.Image.create(
+        prompt=prompt,
+        n=1,
+        size=image_size,
+    )
+
+    image_url = response.choices[0].text.strip()
+    image_binary = requests.get(image_url).content
+
+    return image_binary

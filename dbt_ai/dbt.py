@@ -4,7 +4,7 @@ import re
 import yaml
 import networkx as nx
 
-from dbt_ai.ai import generate_response
+from dbt_ai.ai import generate_response, generate_dalle_image
 from dbt_ai.helper import find_yaml_files
 
 
@@ -78,7 +78,7 @@ class DbtModelProcessor:
 
         return models, missing_metadata
 
-    def build_graph_from_models(self, models):
+    def generate_lineage_graph(self, models):
         # Create a directed graph
         G = nx.DiGraph()
 
@@ -93,3 +93,49 @@ class DbtModelProcessor:
                 G.add_edge(ref, model["model_name"])
 
         return G
+
+    def generate_lineage_description(G: nx.DiGraph) -> str:
+        """
+        Generate a textual description of the lineage graph.
+
+        Args:
+            G (nx.DiGraph): A directed graph representing the lineage.
+
+        Returns:
+            str: A textual description of the lineage.
+        """
+        nodes = list(nx.topological_sort(G))
+
+        description = "The following DBT models are used:\n\n"
+        for node in nodes:
+            parents = list(G.predecessors(node))
+            if parents:
+                parent_names = ", ".join(parents)
+                description += f"{node} depends on {parent_names}\n"
+            else:
+                description += f"{node} is a root node\n"
+
+        return description
+
+
+    def generate_lineage(dbt_models: list[str]) -> str:
+        """
+        Generate a textual description of the lineage based on a list of DBT models.
+
+        Args:
+            dbt_models (List[str]): A list of DBT models.
+
+        Returns:
+            str: A textual description of the lineage.
+        """
+        G = generate_lineage_graph(dbt_models)
+        description = generate_lineage_description(G)
+        return description
+
+    def generate_lineage_image(description: str) -> None:
+        image_binary = generate_dalle_image(description)
+        image_path = f"{self.dbt_project_path}/lineage.png"
+        print(f"Saving generated lineage image in {image_path}")
+        # Write image to file
+        with open(image_path, 'wb') as f:
+            f.write(image_binary)

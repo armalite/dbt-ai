@@ -29,6 +29,9 @@ def main() -> None:
     else:
         print("\nAll models have associated metadata.")
 
+    lineage_description = processor.generate_lineage(models)
+    processor.generate_lineage_image(lineage_description)
+
 
 if __name__ == "__main__":
     main()
