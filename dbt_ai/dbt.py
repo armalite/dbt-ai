@@ -88,7 +88,7 @@ class DbtModelProcessor:
 
         # Add edges based on ref() calls
         for model in models:
-            refs = self.get_model_refs(model["content"])
+            refs = model["refs"]
             for ref in refs:
                 G.add_edge(ref, model["model_name"])
 

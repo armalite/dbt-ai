@@ -103,9 +103,10 @@
                 <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
 
 <ul>
-<li>Consider aliasing the <code>*</code> in the select statement to explicitly list out the columns being selected. This can make it easier to understand the data being pulled in and can help with performance by reducing the amount of unnecessary data being selected.</li>
-<li>Use the <code>ref()</code> function instead of hardcoding the table name in the <code>FROM</code> clause. This makes the model more dynamic and allows for easier maintenance in case the name of the referenced model changes.</li>
-<li>Consider adding a comment to explain the purpose of the model and any assumptions being made about the data being pulled in. While comments are not being checked in this application, they can be helpful for other team members who may be working with the code in the future.</li>
+<li>Consider using column names instead of <code>*</code> in the SELECT statement to make it more clear what data is being used in downstream models.</li>
+<li>Use <code>ref('my_first_dbt_model')</code> instead of hardcoding the table name in the FROM clause to make the model more flexible and easier to maintain.</li>
+<li>If there are multiple columns being selected, consider aliasing them to more meaningful names to improve readability in downstream models.</li>
+<li>Consider adding a comment explaining the purpose of the model and any assumptions made in the WHERE clause.</li>
 </ul>
 </p>
             </div>
@@ -115,10 +116,10 @@
                 <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using <code>ref</code> instead of hardcoding the table name to improve maintainability and reusability of the code.</li>
-<li>Add a comment explaining the purpose of the model and any assumptions made.</li>
+<li>Consider using <code>ref</code> instead of hardcoding the table name to improve maintainability and readability of the code.</li>
+<li>Add a comment above the model to provide context and describe the purpose of the model.</li>
 <li>Consider adding a schema test to ensure that the model returns the expected columns and data types.</li>
-<li>If possible, specify the columns to be selected instead of using <code>select *</code> to reduce the amount of data being selected and improve query performance.</li>
+<li>Use a more descriptive name for the model that reflects its purpose and contents.</li>
 </ul>
 </p>
             </div>
@@ -128,9 +129,10 @@
                 <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
 
 <ul>
-<li>Instead of hardcoding the source data in the model, consider creating a separate source file for the data and using a <code>ref</code> to reference it in the model. This will make the model more modular and easier to maintain.</li>
-<li>Consider adding a schema to the <code>config</code> block to ensure that the model is created in the correct schema.</li>
-<li>Since this is a simple model with only one source, consider renaming the <code>source_data</code> Common Table Expression (CTE) to something more descriptive of the data it represents.</li>
+<li><p>Consider using a <code>ref</code> instead of hardcoding the <code>source_data</code> table name in the <code>FROM</code> clause. This will make it easier to maintain your code and avoid errors if the table name changes in the future.</p></li>
+<li><p>It's a good practice to explicitly list out the column names in the <code>SELECT</code> statement instead of using <code>SELECT *</code>. This makes your code more readable and helps avoid issues if the table schema changes.</p></li>
+<li><p>Consider adding a comment at the top of the model to describe what it does and any assumptions made in the code.</p></li>
+<li><p>If you don't need to use a CTE, consider removing it and using a subquery instead. This can make your code simpler and easier to read.</p></li>
 </ul>
 </p>
             </div>
