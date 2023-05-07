@@ -81,7 +81,7 @@ class DbtModelProcessor:
         return models, missing_metadata
 
     def generate_lineage_graph(self, models):
-    # Create a directed graph
+        # Create a directed graph
         G = nx.DiGraph()
 
         # Add nodes for each model
@@ -160,7 +160,7 @@ class DbtModelProcessor:
                 node_trace["text"] += tuple(["MISSING METADATA"])
             else:
                 node_trace["marker"]["color"] = "rgb(71, 122, 193)"
-                
+
         for edge in G.edges():
             x0, y0 = pos[edge[0]]
             x1, y1 = pos[edge[1]]
