@@ -81,12 +81,12 @@ class DbtModelProcessor:
         return models, missing_metadata
 
     def generate_lineage_graph(self, models):
-        # Create a directed graph
+    # Create a directed graph
         G = nx.DiGraph()
 
         # Add nodes for each model
         for model in models:
-            G.add_node(model["model_name"])
+            G.add_node(model["model_name"], metadata_exists=model["metadata_exists"])
 
         # Add edges based on ref() calls
         for model in models:
@@ -137,6 +137,8 @@ class DbtModelProcessor:
             name="Nodes",
         )
 
+        missing_metadata_color = "rgb(255, 0, 0)"
+
         edge_trace = go.Scatter(
             x=[],
             y=[],
@@ -152,6 +154,13 @@ class DbtModelProcessor:
             node_trace["y"] += tuple([y])
             node_trace["text"] += tuple([node])
 
+            # set marker color and/or text label based on whether the model has metadata or not
+            if "metadata_exists" in G.nodes[node] and not G.nodes[node]["metadata_exists"]:
+                node_trace["marker"]["color"] = missing_metadata_color
+                node_trace["text"] += tuple(["MISSING METADATA"])
+            else:
+                node_trace["marker"]["color"] = "rgb(71, 122, 193)"
+                
         for edge in G.edges():
             x0, y0 = pos[edge[0]]
             x1, y1 = pos[edge[1]]

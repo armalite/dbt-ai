@@ -18,7 +18,7 @@ def main() -> None:
     output_path = os.path.join(args.dbt_project_path, "dbt_model_suggestions.html")
 
     lineage_description, graph = processor.generate_lineage(models)
-    # processor.plot_directed_graph(graph)
+    #processor.plot_directed_graph(graph)
 
     print(f"Lineage description:\n {lineage_description}")
 
