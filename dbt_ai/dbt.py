@@ -196,7 +196,7 @@ class DbtModelProcessor:
     def create_dbt_models(self, prompt: str) -> None:
         print(f"Attempting to create dbt models based on prompt")
         sources_yml = self.sources_yml_content if self.sources_yml_content else ""
-        response = generate_models(prompt, self.sources_yml_content)
+        response = generate_models(prompt, sources_yml)
 
         model_delimiter = "===\n\n"
         response_lines = response[0].split(model_delimiter)
