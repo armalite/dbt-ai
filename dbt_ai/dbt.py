@@ -25,7 +25,7 @@ class DbtModelProcessor:
         refs = re.findall(r"ref\(['\"]([\w\.]+)['\"]\)", content)
 
         return refs
-    
+
     def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> list:
         with open(file_path, "r") as f:
             content = f.read()
@@ -58,7 +58,7 @@ class DbtModelProcessor:
             raw_suggestion = ""
 
         refs = self.get_model_refs(model_file)
-        
+
         return {
             "model_name": model_name,
             "metadata_exists": has_metadata,
@@ -94,7 +94,7 @@ class DbtModelProcessor:
 
         return G
 
-    def generate_lineage_description(G: nx.DiGraph) -> str:
+    def generate_lineage_description(self, G: nx.DiGraph) -> str:
         """
         Generate a textual description of the lineage graph.
 
@@ -117,8 +117,7 @@ class DbtModelProcessor:
 
         return description
 
-
-    def generate_lineage(dbt_models: list[str]) -> str:
+    def generate_lineage(self, dbt_models: list[str]) -> str:
         """
         Generate a textual description of the lineage based on a list of DBT models.
 
@@ -132,10 +131,10 @@ class DbtModelProcessor:
         description = generate_lineage_description(G)
         return description
 
-    def generate_lineage_image(description: str) -> None:
+    def generate_lineage_image(self, description: str) -> None:
         image_binary = generate_dalle_image(description)
         image_path = f"{self.dbt_project_path}/lineage.png"
         print(f"Saving generated lineage image in {image_path}")
         # Write image to file
-        with open(image_path, 'wb') as f:
+        with open(image_path, "wb") as f:
             f.write(image_binary)

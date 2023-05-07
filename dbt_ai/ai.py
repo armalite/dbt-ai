@@ -3,6 +3,7 @@
 import openai
 import os
 
+
 def generate_response(prompt) -> list:
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -36,7 +37,6 @@ def generate_response(prompt) -> list:
 
 
 def generate_dalle_image(prompt: str, image_size: str = "1024x1024"):
-
     final_prompt = f"Draw a diagram showing lineage between dbt models using the following lineage descriptions to help: \
                     {prompt} \
                     "
