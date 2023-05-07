@@ -1,6 +1,6 @@
 # DBT AI
 
-This application provides AI generated recommendations on how to improve your [DBT](https://www.getdbt.com/) models.
+An application to provide AI powered development and recommendations for your [DBT](https://www.getdbt.com/) models.
 
 ## Features
  - Scans all dbt models and generates a report containing recommendations for each model
@@ -17,7 +17,7 @@ pip install dbt-ai==0.1.3a0
 WARNING: This is an early phase application that may still contain bugs
 
 ## Prerequisites
- - In order to benefit from AI recommendations, you need your own OpenAI API Key with the initial version of this application
+ - In order to benefit from AI features, you need your own OpenAI API Key with the initial version of this application
     - Once you sign up to [OpenAI](https://openai.com/product) you can create an API key. 
     - Trial version gives you a certain amount of credits allowing you to make many API calls
     - Usage beyond the trial credits require billing details. [API usage pricing](https://openai.com/pricing) provides more info
