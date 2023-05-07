@@ -127,8 +127,8 @@ class DbtModelProcessor:
         Returns:
             str: A textual description of the lineage.
         """
-        G = generate_lineage_graph(dbt_models)
-        description = generate_lineage_description(G)
+        G = self.generate_lineage_graph(dbt_models)
+        description = self.generate_lineage_description(G)
         return description
 
     def generate_lineage_image(self, description: str) -> None:
