@@ -116,7 +116,7 @@ class DbtModelProcessor:
         description = self.generate_lineage_description(G)
         return description
 
-    def generate_lineage_image(self, description: str) -> None:
+    def generate_image(self, description: str) -> None:
         image_binary = generate_dalle_image(description)
         image_path = f"{self.dbt_project_path}/lineage.png"
         print(f"Saving generated lineage image in {image_path}")
