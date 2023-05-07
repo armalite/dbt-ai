@@ -19,12 +19,3 @@ def format_suggestion(suggestion: str):
     html_suggestion = formatted_suggestion
 
     return html_suggestion
-
-
-def get_model_refs(model_file_path: str) -> list:
-    with open(model_file_path, "r") as f:
-        content = f.read()
-
-    refs = re.findall(r"ref\(['\"]([\w\.]+)['\"]\)", content)
-
-    return refs

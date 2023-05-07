@@ -1,6 +1,6 @@
 import glob
 import os
-
+import re
 import yaml
 
 from dbt_ai.ai import generate_response
@@ -17,6 +17,14 @@ class DbtModelProcessor:
         if not self.api_key_available:
             print("Warning: OPENAI_API_KEY is not set. Suggestion features will be unavailable.")
 
+    def get_model_refs(model_file_path: str) -> list:
+        with open(model_file_path, "r") as f:
+            content = f.read()
+
+        refs = re.findall(r"ref\(['\"]([\w\.]+)['\"]\)", content)
+
+        return refs
+    
     def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> list:
         with open(file_path, "r") as f:
             content = f.read()
@@ -48,7 +56,7 @@ class DbtModelProcessor:
         else:
             raw_suggestion = ""
 
-        refs = get_model_refs(model_file)
+        refs = self.get_model_refs(model_file)
         
         return {
             "model_name": model_name,
