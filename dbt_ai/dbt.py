@@ -4,7 +4,7 @@ import os
 import yaml
 
 from dbt_ai.ai import generate_response
-from dbt_ai.helper import find_yaml_files
+from dbt_ai.helper import find_yaml_files, get_model_refs
 
 
 class DbtModelProcessor:
@@ -48,10 +48,13 @@ class DbtModelProcessor:
         else:
             raw_suggestion = ""
 
+        refs = get_model_refs(model_file)
+        
         return {
             "model_name": model_name,
             "metadata_exists": has_metadata,
             "suggestions": raw_suggestion,
+            "refs": refs,
         }
 
     def process_dbt_models(self):  # flake8: noqa

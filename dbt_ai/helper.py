@@ -3,7 +3,7 @@
 import glob
 import html
 import os
-
+import re
 
 def find_yaml_files(dbt_project_path: str):
     yaml_files = glob.glob(os.path.join(dbt_project_path, "**/*.yml"), recursive=True)
@@ -19,3 +19,12 @@ def format_suggestion(suggestion: str):
     html_suggestion = formatted_suggestion
 
     return html_suggestion
+
+
+def get_model_refs(model_file_path: str) -> list:
+    with open(model_file_path, "r") as f:
+        content = f.read()
+
+    refs = re.findall(r"ref\(['\"]([\w\.]+)['\"]\)", content)
+
+    return refs

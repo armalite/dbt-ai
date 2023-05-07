@@ -33,3 +33,4 @@ def generate_response(prompt) -> list:
         temperature=0.5,
     )
     return response.choices[0].message["content"].strip()
+
