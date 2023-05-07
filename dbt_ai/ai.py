@@ -2,6 +2,7 @@
 
 import openai
 import os
+import requests
 
 
 def generate_response(prompt) -> list:
@@ -46,7 +47,7 @@ def generate_dalle_image(prompt: str, image_size: str = "1024x1024"):
         size=image_size,
     )
 
-    image_url = response.choices[0].text.strip()
+    image_url = response.data[0].url.strip()
     image_binary = requests.get(image_url).content
 
     return image_binary

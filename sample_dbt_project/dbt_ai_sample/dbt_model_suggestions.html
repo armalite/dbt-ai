@@ -100,14 +100,11 @@
         
             <div class="model">
                 <h2>my_second_dbt_model</h2>
-                <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
-
-<ul>
-<li>Consider using column names instead of <code>*</code> in the SELECT statement to make it more clear what data is being used in downstream models.</li>
-<li>Use <code>ref('my_first_dbt_model')</code> instead of hardcoding the table name in the FROM clause to make the model more flexible and easier to maintain.</li>
-<li>If there are multiple columns being selected, consider aliasing them to more meaningful names to improve readability in downstream models.</li>
-<li>Consider adding a comment explaining the purpose of the model and any assumptions made in the WHERE clause.</li>
-</ul>
+                <p><p>Suggestions for model <code>my_second_dbt_model</code>:
+- Use a more descriptive name for the model instead of <code>my_second_dbt_model</code> if possible
+- Instead of using <code>select *</code>, explicitly list out the columns needed from <code>my_first_dbt_model</code>
+- Use <code>ref()</code> instead of hardcoding the name of <code>my_first_dbt_model</code> in the query
+- Consider adding a comment above the query to explain its purpose or any relevant information about the data it's pulling</p>
 </p>
             </div>
         
@@ -116,10 +113,9 @@
                 <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using <code>ref</code> instead of hardcoding the table name to improve maintainability and readability of the code.</li>
-<li>Add a comment above the model to provide context and describe the purpose of the model.</li>
-<li>Consider adding a schema test to ensure that the model returns the expected columns and data types.</li>
-<li>Use a more descriptive name for the model that reflects its purpose and contents.</li>
+<li>Consider using <code>ref()</code> instead of hardcoding the table name to improve maintainability and flexibility in case the table name changes.</li>
+<li>If possible, provide a more descriptive name for the <code>id</code> column to improve readability and understanding of the data.</li>
+<li>Consider adding a comment at the top of the model to describe the purpose of the query and any relevant information about the data being selected.</li>
 </ul>
 </p>
             </div>
@@ -129,10 +125,10 @@
                 <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
 
 <ul>
-<li><p>Consider using a <code>ref</code> instead of hardcoding the <code>source_data</code> table name in the <code>FROM</code> clause. This will make it easier to maintain your code and avoid errors if the table name changes in the future.</p></li>
-<li><p>It's a good practice to explicitly list out the column names in the <code>SELECT</code> statement instead of using <code>SELECT *</code>. This makes your code more readable and helps avoid issues if the table schema changes.</p></li>
-<li><p>Consider adding a comment at the top of the model to describe what it does and any assumptions made in the code.</p></li>
-<li><p>If you don't need to use a CTE, consider removing it and using a subquery instead. This can make your code simpler and easier to read.</p></li>
+<li>Consider using the <code>ref</code> function to reference the <code>source_data</code> CTE instead of hardcoding the table name in the <code>FROM</code> clause.</li>
+<li>It's good practice to explicitly list out the columns being selected instead of using <code>SELECT *</code>.</li>
+<li>Consider adding a comment to the <code>source_data</code> CTE explaining where the data is coming from and what it represents.</li>
+<li>Consider adding a schema to the <code>source_data</code> CTE to ensure that the model is properly namespaced and to avoid collisions with other models in the same database.</li>
 </ul>
 </p>
             </div>
