@@ -100,11 +100,14 @@
         
             <div class="model">
                 <h2>my_second_dbt_model</h2>
-                <p><p>Suggestions for model <code>my_second_dbt_model</code>:
-- Use a more descriptive name for the model instead of <code>my_second_dbt_model</code> if possible
-- Instead of using <code>select *</code>, explicitly list out the columns needed from <code>my_first_dbt_model</code>
-- Use <code>ref()</code> instead of hardcoding the name of <code>my_first_dbt_model</code> in the query
-- Consider adding a comment above the query to explain its purpose or any relevant information about the data it's pulling</p>
+                <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
+
+<ul>
+<li>Consider aliasing the <code>*</code> in the <code>SELECT</code> statement to explicitly list out the columns being selected. This can help with readability and prevent unexpected changes in the schema if the underlying table changes.</li>
+<li>Use <code>ref</code> instead of hardcoding the table name in the <code>FROM</code> clause. This will make your code more modular and easier to maintain if the underlying table name changes.</li>
+<li>Consider using <code>{{ var('my_var_name') }}</code> instead of hardcoded values in the <code>WHERE</code> clause. This will make your code more flexible and allow for easier configuration.</li>
+<li>If <code>id</code> is a primary key in the underlying table, consider adding a comment stating this in the code. This can help with understanding the purpose of the model and prevent future mistakes if the table schema changes.</li>
+</ul>
 </p>
             </div>
         
@@ -113,9 +116,11 @@
                 <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using <code>ref()</code> instead of hardcoding the table name to improve maintainability and flexibility in case the table name changes.</li>
-<li>If possible, provide a more descriptive name for the <code>id</code> column to improve readability and understanding of the data.</li>
-<li>Consider adding a comment at the top of the model to describe the purpose of the query and any relevant information about the data being selected.</li>
+<li>Consider using the <code>ref</code> function to reference the table instead of hardcoding the table name. This will make your code more maintainable and will allow for easier renaming of tables in the future.</li>
+<li>It's best practice to explicitly list out the columns you want to select instead of using <code>SELECT *</code>. This can help with query performance and can make your code more readable.</li>
+<li>Consider adding a comment at the top of your model to explain what it does and any assumptions you're making about the data.</li>
+<li>If <code>id</code> is a primary key, consider adding a comment to explain why you're selecting only the row with <code>id = 1</code>. If it's not a primary key, consider adding a comment to explain why you're selecting only one row instead of multiple.</li>
+<li>Consider using a schema.yml file to document the schema of the table and any relevant information about the data.</li>
 </ul>
 </p>
             </div>
@@ -125,10 +130,10 @@
                 <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using the <code>ref</code> function to reference the <code>source_data</code> CTE instead of hardcoding the table name in the <code>FROM</code> clause.</li>
-<li>It's good practice to explicitly list out the columns being selected instead of using <code>SELECT *</code>.</li>
-<li>Consider adding a comment to the <code>source_data</code> CTE explaining where the data is coming from and what it represents.</li>
-<li>Consider adding a schema to the <code>source_data</code> CTE to ensure that the model is properly namespaced and to avoid collisions with other models in the same database.</li>
+<li>Consider using <code>ref()</code> instead of hardcoding table names in your queries. This will make your code more modular and easier to maintain.</li>
+<li>Use <code>CTE</code> (Common Table Expression) to structure your code in a more readable way. This will make it easier for other developers to understand your code.</li>
+<li>Consider adding a <code>schema</code> parameter to your <code>config</code> block. This will ensure that your model is created in the correct schema.</li>
+<li>It's good practice to include a <code>description</code> parameter in your <code>config</code> block to provide context for your model.</li>
 </ul>
 </p>
             </div>

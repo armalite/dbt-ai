@@ -9,6 +9,9 @@ dependencies = [
     "openai~=0.27",
     "pyyaml~=6.0",
     "markdown2~=2.4",
+    "pyvis~=0.3.2",
+    "plotly~=5.14",
+    "numpy~=1.24",
 ]
 
 [project.optional-dependencies]

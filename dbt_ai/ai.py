@@ -38,9 +38,11 @@ def generate_response(prompt) -> list:
 
 
 def generate_dalle_image(prompt: str, image_size: str = "1024x1024"):
-    final_prompt = f"Draw a diagram showing lineage between dbt models using the following lineage descriptions to help: \
+    
+    final_prompt = f"Draw a set of connected balls representing the nodes and edges of the following graph description: \
                     {prompt} \
                     "
+    print(f"Generating AI image using DALL-E with the following prompt: {final_prompt}")
     response = openai.Image.create(
         prompt=prompt,
         n=1,

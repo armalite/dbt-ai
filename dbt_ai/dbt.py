@@ -3,6 +3,8 @@ import os
 import re
 import yaml
 import networkx as nx
+from pyvis.network import Network
+import plotly.graph_objects as go
 
 from dbt_ai.ai import generate_response, generate_dalle_image
 from dbt_ai.helper import find_yaml_files
@@ -97,7 +99,7 @@ class DbtModelProcessor:
     def generate_lineage_description(self, G: nx.DiGraph) -> str:
         nodes = list(nx.topological_sort(G))
 
-        description = "The following DBT models are used:\n\n"
+        description = ""#"The following DBT models are used:\n\n"
         for node in nodes:
             parents = list(G.predecessors(node))
             if parents:
@@ -110,6 +112,7 @@ class DbtModelProcessor:
 
     def generate_lineage(self, dbt_models: list[dict]) -> str:
         G = self.generate_lineage_graph(dbt_models)
+        self.plot_directed_graph(G)
         description = self.generate_lineage_description(G)
         return description
 
@@ -120,3 +123,52 @@ class DbtModelProcessor:
         # Write image to file
         with open(image_path, "wb") as f:
             f.write(image_binary)
+
+    def plot_directed_graph(self, G: nx.DiGraph):
+        pos = nx.spring_layout(G, seed=42)
+
+        node_trace = go.Scatter(
+            x=[],
+            y=[],
+            text=[],
+            mode="markers+text",
+            textposition="top center",
+            hoverinfo="text",
+            marker=dict(color="rgb(71, 122, 193)", size=20, line=dict(width=2, color="rgb(0, 0, 0)")),
+            name="Nodes",
+        )
+
+        edge_trace = go.Scatter(
+            x=[],
+            y=[],
+            line=dict(width=2, color="#888"),
+            hoverinfo="none",
+            mode="lines",
+            name="Edges",
+        )
+
+        for node in G.nodes():
+            x, y = pos[node]
+            node_trace["x"] += tuple([x])
+            node_trace["y"] += tuple([y])
+            node_trace["text"] += tuple([node])
+
+        for edge in G.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+            edge_trace["x"] += tuple([x0, x1, None])
+            edge_trace["y"] += tuple([y0, y1, None])
+
+        fig = go.Figure(data=[edge_trace, node_trace])
+        fig.update_layout(
+            title="Directed Graph of DBT Models",
+            title_x=0.5,
+            title_font_size=24,
+            showlegend=False,
+            hovermode="closest",
+            margin=dict(b=20, l=5, r=5, t=40),
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        )
+
+        fig.show()
