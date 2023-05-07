@@ -38,7 +38,7 @@ Please allow some time for the AI model to process your dbt models. The applicat
 
 ## Generated Report
 This shows an example of a report generated from a DBT project containing 3 models
-![](images/ai_generated_dbt_report_1.png?raw=true)
+![](images/generated_report_1.png?raw=true)
 
 
 ## Contributing
