@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DBT Model Improvement Suggestions</title>
     <style>
-        /* Add your custom CSS styles here */
+        /* Add custom CSS styles here */
 
         /* Body style */
         body {
@@ -103,12 +103,9 @@
                 <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
 
 <ul>
-<li>Use a more descriptive name for the model that reflects its purpose.</li>
-<li>Use a <code>ref</code> function to reference the <code>my_first_dbt_model</code> instead of hardcoding the table name. This will make the model more flexible and easier to maintain.</li>
-<li>Consider adding a comment to explain the purpose of the model and any assumptions made.</li>
-<li>Use explicit column names instead of <code>*</code> to make the query more readable and avoid potential issues with column ordering.</li>
-<li>Consider adding a <code>limit</code> clause to the query to avoid returning a large number of rows unnecessarily.</li>
-<li>Consider adding a <code>where</code> clause to the <code>ref</code> function to filter the rows returned by <code>my_first_dbt_model</code> before applying the <code>where</code> clause in this model. This can improve performance and reduce the amount of data processed.</li>
+<li>Consider aliasing the <code>*</code> in the select statement to explicitly list out the columns being selected. This can make it easier to understand the data being pulled in and can help with performance by reducing the amount of unnecessary data being selected.</li>
+<li>Use the <code>ref()</code> function instead of hardcoding the table name in the <code>FROM</code> clause. This makes the model more dynamic and allows for easier maintenance in case the name of the referenced model changes.</li>
+<li>Consider adding a comment to explain the purpose of the model and any assumptions being made about the data being pulled in. While comments are not being checked in this application, they can be helpful for other team members who may be working with the code in the future.</li>
 </ul>
 </p>
             </div>
@@ -118,11 +115,10 @@
                 <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using <code>ref</code> instead of hardcoding the table name in the SQL query. This will make the model more flexible and easier to maintain in case the table name changes in the future. For example, you can create a <code>source</code> model that references the table and then use <code>ref('source')</code> in this model.</li>
-<li>It's a good practice to specify the columns you want to select instead of using <code>*</code>. This can improve query performance and make the model more readable. </li>
-<li>Consider adding a description to the model to provide context and explain what it does. This can be helpful for other users who may be working with the model in the future.</li>
-<li>If the <code>id</code> column is a primary key, consider adding a <code>limit 1</code> clause to the query to ensure that only one row is returned. This can improve query performance and prevent errors in case there are multiple rows with the same <code>id</code> value.</li>
-<li>Consider using a schema.yml file to document the model and its columns. This can help other users understand the purpose of the model and the meaning of its columns.</li>
+<li>Consider using <code>ref</code> instead of hardcoding the table name to improve maintainability and reusability of the code.</li>
+<li>Add a comment explaining the purpose of the model and any assumptions made.</li>
+<li>Consider adding a schema test to ensure that the model returns the expected columns and data types.</li>
+<li>If possible, specify the columns to be selected instead of using <code>select *</code> to reduce the amount of data being selected and improve query performance.</li>
 </ul>
 </p>
             </div>
@@ -132,10 +128,9 @@
                 <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
 
 <ul>
-<li>Instead of hardcoding the source data in the model, consider creating a separate source file that defines the source data as a table or view. This will make it easier to reuse the source data in other models and ensure consistency across the project.</li>
-<li>Use the <code>ref</code> function to reference the source data instead of hardcoding the table name. This will make it easier to update the source data in the future without having to update all the models that reference it.</li>
-<li>Consider adding a schema to the source data table/view to ensure that it is created in the correct schema in the target database.</li>
-<li>Consider adding a description to the model to provide context and documentation for other users who may be working with the model in the future.</li>
+<li>Instead of hardcoding the source data in the model, consider creating a separate source file for the data and using a <code>ref</code> to reference it in the model. This will make the model more modular and easier to maintain.</li>
+<li>Consider adding a schema to the <code>config</code> block to ensure that the model is created in the correct schema.</li>
+<li>Since this is a simple model with only one source, consider renaming the <code>source_data</code> Common Table Expression (CTE) to something more descriptive of the data it represents.</li>
 </ul>
 </p>
             </div>
