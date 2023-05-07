@@ -99,7 +99,7 @@ class DbtModelProcessor:
     def generate_lineage_description(self, G: nx.DiGraph) -> str:
         nodes = list(nx.topological_sort(G))
 
-        description = ""#"The following DBT models are used:\n\n"
+        description = ""  # "The following DBT models are used:\n\n"
         for node in nodes:
             parents = list(G.predecessors(node))
             if parents:

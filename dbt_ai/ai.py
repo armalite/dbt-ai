@@ -38,7 +38,6 @@ def generate_response(prompt) -> list:
 
 
 def generate_dalle_image(prompt: str, image_size: str = "1024x1024"):
-    
     final_prompt = f"Draw a set of connected balls representing the nodes and edges of the following graph description: \
                     {prompt} \
                     "
