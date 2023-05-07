@@ -167,8 +167,8 @@ class DbtModelProcessor:
             showlegend=False,
             hovermode="closest",
             margin=dict(b=20, l=5, r=5, t=40),
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.2,1.2]),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.2,1.2]),
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.2, 1.2]),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.2, 1.2]),
         )
 
         fig.show()

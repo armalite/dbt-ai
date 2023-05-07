@@ -33,8 +33,6 @@ def main() -> None:
     else:
         print("\nAll models have associated metadata.")
 
-    
-
 
 if __name__ == "__main__":
     main()
