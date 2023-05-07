@@ -34,6 +34,11 @@ WARNING: This is an early phase application that may still contain bugs
     dbt-ai path/to/dbt/project
 ```
 
+For example, if you are already inside your dbt project directory, you can run:
+```bash
+   dbt-ai .
+```
+
 Please allow some time for the AI model to process your dbt models. The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as dbt_model_suggestions.html within the dbt project directory. Upon generation of the report, it will be opened in a new browser tab.
 
 ## Generated Report
