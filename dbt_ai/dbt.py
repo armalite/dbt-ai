@@ -18,7 +18,7 @@ class DbtModelProcessor:
         if not self.api_key_available:
             print("Warning: OPENAI_API_KEY is not set. Suggestion features will be unavailable.")
 
-    def get_model_refs(model_file_path: str) -> list:
+    def get_model_refs(self, model_file_path: str) -> list:
         with open(model_file_path, "r") as f:
             content = f.read()
 
@@ -78,7 +78,7 @@ class DbtModelProcessor:
 
         return models, missing_metadata
 
-    def build_graph_from_models(models):
+    def build_graph_from_models(self, models):
         # Create a directed graph
         G = nx.DiGraph()
 
@@ -88,7 +88,7 @@ class DbtModelProcessor:
 
         # Add edges based on ref() calls
         for model in models:
-            refs = extract_ref_calls(model["content"])
+            refs = self.get_model_refs(model["content"])
             for ref in refs:
                 G.add_edge(ref, model["model_name"])
 
