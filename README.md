@@ -11,7 +11,7 @@ This application provides AI generated recommendations on how to improve your [D
 ## Installation
 You can install the application here
 ```bash
-pip install dbt-ai==0.1.0a0
+pip install dbt-ai==0.1.1a0
 ```
 
 WARNING: This is an early phase application that may still contain bugs
