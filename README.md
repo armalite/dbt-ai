@@ -1,6 +1,10 @@
 # DBT AI
 
-This application helps you improve your dbt models by providing suggestions using the OpenAI GPT-3.5 model.
+This application provides AI generated recommendations on how to improve your dbt models.
+
+## Features
+ - Scans all dbt models and generates a report containing recommendations for each model
+ - Lists dbt models that are missing associated metadata e.g. in a `schema.yml` file or equivalent
 
 ## Installation
 You can install the application here
