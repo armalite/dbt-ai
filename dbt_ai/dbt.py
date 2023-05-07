@@ -24,8 +24,12 @@ class DbtModelProcessor:
 
     def read_sources_yml(self, dbt_project_path: str):
         sources_yml_path = os.path.join(dbt_project_path, "models", "sources.yml")
-        with open(sources_yml_path, "r") as f:
-            sources_yml_content = f.read()
+        try:
+            with open(sources_yml_path, "r") as f:
+                sources_yml_content = f.read()
+        except FileNotFoundError:
+            print("sources.yml not found. Proceeding with an empty sources file.")
+            sources_yml_content = None
         return sources_yml_content
 
     def get_model_refs(self, model_file_path: str) -> list:
@@ -191,6 +195,7 @@ class DbtModelProcessor:
 
     def create_dbt_models(self, prompt: str) -> None:
         print(f"Attempting to create dbt models based on prompt")
+        sources_yml = self.sources_yml_content if self.sources_yml_content else ""
         response = generate_models(prompt, self.sources_yml_content)
 
         model_delimiter = "===\n\n"
