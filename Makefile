@@ -19,5 +19,5 @@ publish-test: clean-build build dist
 	@twine upload --verbose --repository-url https://test.pypi.org/legacy/ --username $(PYPI_USERNAME) --password $(PYPI_PASSWORD_TEST) dist/*
 
 
-publish-prod:
+publish-prod: clean-build build dist
 	@twine upload --verbose --username $(PYPI_USERNAME) --password $(PYPI_PASSWORD_PROD) dist/*
