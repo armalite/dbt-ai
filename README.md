@@ -47,7 +47,7 @@ For example, if you are already inside your dbt project directory, you can run:
 Please allow some time for the AI model to process your dbt models. The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as dbt_model_suggestions.html within the dbt project directory. Upon generation of the report, it will be opened in a new browser tab.
 
 ### Create DBT Models from prompt (AI)
-This feature lets you specify a prompt, which creates AI generated DBT model files for your in the `models/` directory of your specified dbt project. You can assume that the AI model has access to your `sources.yml` file, if you wish to refer to any sources in your prompt. Being specific will provide better results.
+This feature lets you specify a prompt, which creates AI generated DBT model files in the `models/` directory of the specified dbt project. The AI model has access to your `sources.yml` file, if you wish to refer to any sources in your prompt. Being specific will provide better results.
  1. Run the application with the --create-models flag to specify the prompt you wish to use to create your DBT models
  ```bash
     dbt-ai -f path/to/dbt/project --create-models 'your prompt goes here'
