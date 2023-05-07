@@ -103,10 +103,10 @@
                 <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
 
 <ul>
-<li>Consider aliasing the <code>*</code> in the <code>SELECT</code> statement to explicitly list out the columns being selected. This can help with readability and prevent unexpected changes in the schema if the underlying table changes.</li>
-<li>Use <code>ref</code> instead of hardcoding the table name in the <code>FROM</code> clause. This will make your code more modular and easier to maintain if the underlying table name changes.</li>
-<li>Consider using <code>{{ var('my_var_name') }}</code> instead of hardcoded values in the <code>WHERE</code> clause. This will make your code more flexible and allow for easier configuration.</li>
-<li>If <code>id</code> is a primary key in the underlying table, consider adding a comment stating this in the code. This can help with understanding the purpose of the model and prevent future mistakes if the table schema changes.</li>
+<li>Use column names instead of <code>*</code> in the SELECT statement for better readability and maintainability of the code.</li>
+<li>Consider adding a schema qualifier to the <code>ref</code> function to specify the schema of the referenced model.</li>
+<li>Use single quotes instead of double quotes for string literals to be consistent with SQL syntax conventions.</li>
+<li>Consider adding a comment explaining the purpose of the model and how it fits into the overall data transformation process.</li>
 </ul>
 </p>
             </div>
@@ -116,11 +116,10 @@
                 <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using the <code>ref</code> function to reference the table instead of hardcoding the table name. This will make your code more maintainable and will allow for easier renaming of tables in the future.</li>
-<li>It's best practice to explicitly list out the columns you want to select instead of using <code>SELECT *</code>. This can help with query performance and can make your code more readable.</li>
-<li>Consider adding a comment at the top of your model to explain what it does and any assumptions you're making about the data.</li>
-<li>If <code>id</code> is a primary key, consider adding a comment to explain why you're selecting only the row with <code>id = 1</code>. If it's not a primary key, consider adding a comment to explain why you're selecting only one row instead of multiple.</li>
-<li>Consider using a schema.yml file to document the schema of the table and any relevant information about the data.</li>
+<li>Consider using <code>ref()</code> instead of hardcoding the source table name. This will make the model more dynamic and easier to maintain if the source table name changes in the future.</li>
+<li>Consider adding a description to the model using the <code>{{ doc() }}</code> macro. This will make it easier for other users to understand the purpose of the model.</li>
+<li>Consider adding a schema test to ensure that the <code>id</code> column exists in the source table. This will help prevent errors if the source table changes in the future.</li>
+<li>Consider adding a comment to explain the purpose of the <code>id = 1</code> filter. This will make it easier for other users to understand the logic behind the model.</li>
 </ul>
 </p>
             </div>
@@ -130,10 +129,11 @@
                 <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using <code>ref()</code> instead of hardcoding table names in your queries. This will make your code more modular and easier to maintain.</li>
-<li>Use <code>CTE</code> (Common Table Expression) to structure your code in a more readable way. This will make it easier for other developers to understand your code.</li>
-<li>Consider adding a <code>schema</code> parameter to your <code>config</code> block. This will ensure that your model is created in the correct schema.</li>
-<li>It's good practice to include a <code>description</code> parameter in your <code>config</code> block to provide context for your model.</li>
+<li>Consider renaming the model to something more descriptive of its purpose.</li>
+<li>Instead of hardcoding the source data, consider creating a separate dbt source for it and using a <code>ref</code> to reference it in this model. This will make it easier to maintain and update the source data in the future.</li>
+<li>Consider adding a <code>schema</code> argument to the <code>config</code> block to specify the schema where the table will be created. By default, dbt will create the table in the schema specified in the <code>target.schema</code> configuration in <code>dbt_project.yml</code>.</li>
+<li>Consider adding a <code>description</code> argument to the <code>config</code> block to provide more context and information about the model.</li>
+<li>Consider using <code>coalesce</code> instead of <code>null</code> in the source data to ensure that the <code>id</code> column is not null.</li>
 </ul>
 </p>
             </div>

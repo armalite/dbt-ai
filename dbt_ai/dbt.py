@@ -134,7 +134,7 @@ class DbtModelProcessor:
             mode="markers+text",
             textposition="top center",
             hoverinfo="text",
-            marker=dict(color="rgb(71, 122, 193)", size=20, line=dict(width=2, color="rgb(0, 0, 0)")),
+            marker=dict(color="rgb(71, 122, 193)", size=10, line=dict(width=2, color="rgb(0, 0, 0)")),
             name="Nodes",
         )
 
@@ -167,8 +167,8 @@ class DbtModelProcessor:
             showlegend=False,
             hovermode="closest",
             margin=dict(b=20, l=5, r=5, t=40),
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.2,1.2]),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1.2,1.2]),
         )
 
         fig.show()
