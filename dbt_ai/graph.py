@@ -1,16 +1,7 @@
 import networkx as nx
 
 # Assume that you have a list of models and their dependencies
-models = [
-    {
-        "name": "model_a",
-        "dependencies": ["model_b"]
-    },
-    {
-        "name": "model_b",
-        "dependencies": []
-    }
-]
+models = [{"name": "model_a", "dependencies": ["model_b"]}, {"name": "model_b", "dependencies": []}]
 
 # Create a directed graph
 graph = nx.DiGraph()

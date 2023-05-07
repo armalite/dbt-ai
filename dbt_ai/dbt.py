@@ -117,7 +117,7 @@ class DbtModelProcessor:
 
         return description
 
-    def generate_lineage(self, dbt_models: list[str]) -> str:
+    def generate_lineage(self, dbt_models: list[dict]) -> str:
         """
         Generate a textual description of the lineage based on a list of DBT models.
 
