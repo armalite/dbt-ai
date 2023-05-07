@@ -4,7 +4,7 @@ import re
 import yaml
 
 from dbt_ai.ai import generate_response
-from dbt_ai.helper import find_yaml_files, get_model_refs
+from dbt_ai.helper import find_yaml_files
 
 
 class DbtModelProcessor:
