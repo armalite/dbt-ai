@@ -80,6 +80,5 @@ def generate_models(prompt: str, sources_yml: str) -> list[str]:
 
     # Extract the models from the response
     models = response.choices[0].message["content"].split("MODEL:")
-    #print(models)
-    return models 
-    
+    # print(models)
+    return models

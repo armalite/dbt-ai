@@ -1,7 +1,8 @@
 # flake8: noqa
 
 import os
-
+from unittest.mock import mock_open, patch, call
+from unittest import mock
 from dbt_ai.dbt import DbtModelProcessor  #
 
 
@@ -47,3 +48,12 @@ def test_process_dbt_models(mock_generate_response, dbt_project):
     assert model["metadata_exists"]
     assert len(model["suggestions"]) == 1
     assert model["suggestions"][0] == "Use ref() function instead of hardcoding table names."
+
+
+def test_create_dbt_models(dbt_project, mock_generate_models):
+    processor = DbtModelProcessor(dbt_project)
+
+    prompt = "prompt for creating dbt models"
+    processor.create_dbt_models(prompt)
+
+    assert mock_generate_models.called_once_with(prompt, mock.ANY)

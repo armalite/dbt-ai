@@ -40,3 +40,14 @@ def mock_generate_response():
     with patch.object(DbtModelProcessor, "suggest_dbt_model_improvements") as mock_function:
         mock_function.return_value = ["Use ref() function instead of hardcoding table names."]
         yield mock_function
+
+
+@pytest.fixture
+def mock_generate_models():
+    with patch("dbt_ai.dbt.generate_models") as mock:
+        mock.return_value = [
+            "model_name: model_a\n\nSELECT *\nFROM {{ source('beautiful_source', 'organisation') }}\n",
+            "model_name: model_b\n\nSELECT *\nFROM {{ source('beautiful_source', 'user') }}\n",
+            "model_name: model_c\n\nSELECT a.industry, SUM(b.total) as total\nFROM {{ ref('model_a') }} a\nJOIN {{ ref('model_b') }} b\nON a.id = b.id\nGROUP BY a.industry",
+        ]
+        yield mock

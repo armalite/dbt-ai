@@ -46,6 +46,5 @@ def main() -> None:
         processor.create_dbt_models(prompt)
 
 
-
 if __name__ == "__main__":
     main()

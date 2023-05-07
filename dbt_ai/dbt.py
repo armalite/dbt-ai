@@ -23,8 +23,8 @@ class DbtModelProcessor:
             print("Warning: OPENAI_API_KEY is not set. Suggestion features will be unavailable.")
 
     def read_sources_yml(self, dbt_project_path: str):
-        sources_yml_path = os.path.join(dbt_project_path, 'models', 'sources.yml')
-        with open(sources_yml_path, 'r') as f:
+        sources_yml_path = os.path.join(dbt_project_path, "models", "sources.yml")
+        with open(sources_yml_path, "r") as f:
             sources_yml_content = f.read()
         return sources_yml_content
 
@@ -192,14 +192,14 @@ class DbtModelProcessor:
     def create_dbt_models(self, prompt: str) -> None:
         print(f"Attempting to create dbt models based on prompt")
         response = generate_models(prompt, self.sources_yml_content)
-        
+
         model_delimiter = "===\n\n"
         response_lines = response[0].split(model_delimiter)
 
         for i, model_str in enumerate(response_lines):
             if not model_str.strip():
                 continue
-                
+
             model_lines = model_str.strip().split("\n")
             model_name = model_lines[0].split(":")[-1].strip()
             model_content = "\n".join(model_lines[1:])
@@ -209,17 +209,3 @@ class DbtModelProcessor:
             with open(model_path, "w") as f:
                 f.write(model_content.strip())
             print(f"Created model file: {model_path}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
