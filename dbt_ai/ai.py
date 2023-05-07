@@ -1,6 +1,8 @@
 # flake8: noqa
 
 import openai
+import os
+import requests
 
 
 def generate_response(prompt) -> list:
@@ -33,3 +35,20 @@ def generate_response(prompt) -> list:
         temperature=0.5,
     )
     return response.choices[0].message["content"].strip()
+
+
+def generate_dalle_image(prompt: str, image_size: str = "1024x1024"):
+    final_prompt = f"Draw a set of connected balls representing the nodes and edges of the following graph description: \
+                    {prompt} \
+                    "
+    print(f"Generating AI image using DALL-E with the following prompt: {final_prompt}")
+    response = openai.Image.create(
+        prompt=prompt,
+        n=1,
+        size=image_size,
+    )
+
+    image_url = response.data[0].url.strip()
+    image_binary = requests.get(image_url).content
+
+    return image_binary

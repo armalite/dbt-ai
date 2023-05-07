@@ -3,6 +3,7 @@
 import glob
 import html
 import os
+import re
 
 
 def find_yaml_files(dbt_project_path: str):

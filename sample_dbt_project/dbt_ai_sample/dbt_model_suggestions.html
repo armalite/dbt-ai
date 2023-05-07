@@ -103,9 +103,10 @@
                 <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
 
 <ul>
-<li>Consider aliasing the <code>*</code> in the select statement to explicitly list out the columns being selected. This can make it easier to understand the data being pulled in and can help with performance by reducing the amount of unnecessary data being selected.</li>
-<li>Use the <code>ref()</code> function instead of hardcoding the table name in the <code>FROM</code> clause. This makes the model more dynamic and allows for easier maintenance in case the name of the referenced model changes.</li>
-<li>Consider adding a comment to explain the purpose of the model and any assumptions being made about the data being pulled in. While comments are not being checked in this application, they can be helpful for other team members who may be working with the code in the future.</li>
+<li>Consider aliasing the <code>*</code> in the select statement to only select the necessary columns instead of selecting all columns from the referenced model. This can improve performance and reduce the size of the resulting table.</li>
+<li>Instead of hardcoding the <code>id</code> value in the <code>where</code> clause, consider using a variable or a configuration file to make the code more flexible and reusable.</li>
+<li>Use <code>ref()</code> instead of hardcoding the table name in the <code>from</code> clause to ensure that the model is always referencing the latest version of the referenced model.</li>
+<li>Consider adding a description to the model to provide context and documentation for future users.</li>
 </ul>
 </p>
             </div>
@@ -115,10 +116,10 @@
                 <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using <code>ref</code> instead of hardcoding the table name to improve maintainability and reusability of the code.</li>
-<li>Add a comment explaining the purpose of the model and any assumptions made.</li>
-<li>Consider adding a schema test to ensure that the model returns the expected columns and data types.</li>
-<li>If possible, specify the columns to be selected instead of using <code>select *</code> to reduce the amount of data being selected and improve query performance.</li>
+<li>Consider using <code>ref</code> instead of hardcoding the table name to improve maintainability and flexibility of the code.</li>
+<li>Add a schema.yml file to document the model's schema and provide column descriptions.</li>
+<li>Consider selecting only the necessary columns instead of using <code>select *</code> for better performance and to reduce unnecessary data transfer.</li>
+<li>Add a comment explaining the purpose of the model and any relevant information about the data source.</li>
 </ul>
 </p>
             </div>
@@ -128,9 +129,10 @@
                 <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
 
 <ul>
-<li>Instead of hardcoding the source data in the model, consider creating a separate source file for the data and using a <code>ref</code> to reference it in the model. This will make the model more modular and easier to maintain.</li>
-<li>Consider adding a schema to the <code>config</code> block to ensure that the model is created in the correct schema.</li>
-<li>Since this is a simple model with only one source, consider renaming the <code>source_data</code> Common Table Expression (CTE) to something more descriptive of the data it represents.</li>
+<li>Consider using a <code>ref</code> instead of hardcoding the table name in the <code>select</code> statement. This will make the model more dynamic and easier to maintain in case the table name changes in the future.</li>
+<li>It's good practice to explicitly specify the column names in the <code>select</code> statement instead of using <code>*</code>. This will make the code more readable and prevent issues if the source table schema changes.</li>
+<li>Consider adding a <code>not null</code> constraint to the <code>id</code> column in the <code>source_data</code> CTE to ensure data integrity.</li>
+<li>Since the <code>source_data</code> CTE is only used once in the model, consider skipping it and directly selecting from the source table. This will simplify the code and potentially improve performance.</li>
 </ul>
 </p>
             </div>
