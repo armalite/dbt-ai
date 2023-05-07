@@ -2,11 +2,12 @@ import glob
 import os
 import re
 import yaml
+import uuid
 import networkx as nx
 from pyvis.network import Network
 import plotly.graph_objects as go
 
-from dbt_ai.ai import generate_response, generate_dalle_image
+from dbt_ai.ai import generate_response, generate_dalle_image, generate_models
 from dbt_ai.helper import find_yaml_files
 
 
@@ -17,8 +18,15 @@ class DbtModelProcessor:
         self.dbt_project_path = dbt_project_path
         self.yaml_files = find_yaml_files(dbt_project_path)
         self.api_key_available = bool(os.getenv("OPENAI_API_KEY"))
+        self.sources_yml_content = self.read_sources_yml(dbt_project_path)
         if not self.api_key_available:
             print("Warning: OPENAI_API_KEY is not set. Suggestion features will be unavailable.")
+
+    def read_sources_yml(self, dbt_project_path: str):
+        sources_yml_path = os.path.join(dbt_project_path, 'models', 'sources.yml')
+        with open(sources_yml_path, 'r') as f:
+            sources_yml_content = f.read()
+        return sources_yml_content
 
     def get_model_refs(self, model_file_path: str) -> list:
         with open(model_file_path, "r") as f:
@@ -180,3 +188,38 @@ class DbtModelProcessor:
         )
 
         fig.show()
+
+    def create_dbt_models(self, prompt: str) -> None:
+        print(f"Attempting to create dbt models based on prompt")
+        response = generate_models(prompt, self.sources_yml_content)
+        
+        model_delimiter = "===\n\n"
+        response_lines = response[0].split(model_delimiter)
+
+        for i, model_str in enumerate(response_lines):
+            if not model_str.strip():
+                continue
+                
+            model_lines = model_str.strip().split("\n")
+            model_name = model_lines[0].split(":")[-1].strip()
+            model_content = "\n".join(model_lines[1:])
+            model_content = model_content.replace("===", "")
+
+            model_path = os.path.join(self.dbt_project_path, "models", f"{model_name}.sql")
+            with open(model_path, "w") as f:
+                f.write(model_content.strip())
+            print(f"Created model file: {model_path}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+     

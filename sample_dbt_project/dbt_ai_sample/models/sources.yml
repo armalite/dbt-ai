@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: beautiful_source
+    database: MYDB
+    schema: myschema
+    loaded_at_field: loadtime
+    tables:
+      - name: organisation
+        identifier: actual_organisation_table_name
+      - name: user
+        identifier: actual_user_table_name

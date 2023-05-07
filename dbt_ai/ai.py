@@ -52,3 +52,34 @@ def generate_dalle_image(prompt: str, image_size: str = "1024x1024"):
     image_binary = requests.get(image_url).content
 
     return image_binary
+
+
+def generate_models(prompt: str, sources_yml: str) -> list[str]:
+    # Combine prompt and sources.yml content
+    prompt_with_sources = f"{prompt}\n\nSources YAML:\n\n{sources_yml}\n\n"
+    output_dir = "models"
+    # Generate response using OpenAI API
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that will write dbt models based on the provided prompt. The prompt includes useful information such as the contents of the sources.yml file. \
+             If the logic needs to be split into multiple dbt models, please delimit the contents of each model with '===', which will be used to split the data to write into separate sql files later. \
+                Do not put any explanations. Each model content should be divided with a === so that splitting by === would divide the 3 models. The first line in the split model should have a 'model_name: modelname' with the actual model name. \
+                    The following lines after the model name should be the sql content with NO codeblock syntax. The last line of that model file should be the line prior to the next === \
+                The user will likely provide enough information such as any join requirements, or aggregation requirements so use this information to correctly structure your dbt model queries.",
+            },
+            {"role": "user", "content": prompt_with_sources},
+        ],
+        max_tokens=400,
+        n=1,
+        stop=None,
+        temperature=0,
+    )
+
+    # Extract the models from the response
+    models = response.choices[0].message["content"].split("MODEL:")
+    #print(models)
+    return models 
+    

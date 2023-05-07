@@ -23,6 +23,9 @@ def dbt_project(tmp_path):
     models_path = tmp_path / "models"
     models_path.mkdir()
 
+    sources_yml = models_path / "sources.yml"
+    sources_yml.touch()
+
     yaml_file = tmp_path / "schema.yml"
     yaml_file.write_text(sample_yaml_content)
 
