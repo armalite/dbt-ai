@@ -95,15 +95,6 @@ class DbtModelProcessor:
         return G
 
     def generate_lineage_description(self, G: nx.DiGraph) -> str:
-        """
-        Generate a textual description of the lineage graph.
-
-        Args:
-            G (nx.DiGraph): A directed graph representing the lineage.
-
-        Returns:
-            str: A textual description of the lineage.
-        """
         nodes = list(nx.topological_sort(G))
 
         description = "The following DBT models are used:\n\n"
@@ -118,15 +109,6 @@ class DbtModelProcessor:
         return description
 
     def generate_lineage(self, dbt_models: list[dict]) -> str:
-        """
-        Generate a textual description of the lineage based on a list of DBT models.
-
-        Args:
-            dbt_models (List[str]): A list of DBT models.
-
-        Returns:
-            str: A textual description of the lineage.
-        """
         G = self.generate_lineage_graph(dbt_models)
         description = self.generate_lineage_description(G)
         return description
