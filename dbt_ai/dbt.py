@@ -2,6 +2,7 @@ import glob
 import os
 import re
 import yaml
+import networkx as nx
 
 from dbt_ai.ai import generate_response
 from dbt_ai.helper import find_yaml_files
@@ -76,3 +77,19 @@ class DbtModelProcessor:
                 missing_metadata.append(model["model_name"])
 
         return models, missing_metadata
+
+    def build_graph_from_models(models):
+        # Create a directed graph
+        G = nx.DiGraph()
+
+        # Add nodes for each model
+        for model in models:
+            G.add_node(model["model_name"])
+
+        # Add edges based on ref() calls
+        for model in models:
+            refs = extract_ref_calls(model["content"])
+            for ref in refs:
+                G.add_edge(ref, model["model_name"])
+
+        return G
