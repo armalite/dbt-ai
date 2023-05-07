@@ -110,11 +110,10 @@ class DbtModelProcessor:
 
         return description
 
-    def generate_lineage(self, dbt_models: list[dict]) -> str:
+    def generate_lineage(self, dbt_models: list[dict]):
         G = self.generate_lineage_graph(dbt_models)
-        self.plot_directed_graph(G)
         description = self.generate_lineage_description(G)
-        return description
+        return description, G
 
     def generate_image(self, description: str) -> None:
         image_binary = generate_dalle_image(description)
