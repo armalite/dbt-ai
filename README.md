@@ -1,6 +1,6 @@
 # DBT AI
 
-This application provides AI generated recommendations on how to improve your dbt models.
+This application provides AI generated recommendations on how to improve your [DBT](https://www.getdbt.com/) models.
 
 ## Features
  - Scans all dbt models and generates a report containing recommendations for each model
