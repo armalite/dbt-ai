@@ -9,7 +9,7 @@ This application provides AI generated recommendations on how to improve your db
 ## Installation
 You can install the application here
 ```bash
-pip install dbt-ai==0.0.9a0
+pip install dbt-ai==0.0.10a0
 ```
 
 WARNING: This is an early phase application that may still contain bugs

@@ -1,7 +1,7 @@
 [project]
 name = "dbt-ai"
 description = "AI powered DBT helper application"
-version = "0.0.9-alpha"
+version = "0.0.10-alpha"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
