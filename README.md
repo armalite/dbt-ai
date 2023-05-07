@@ -55,7 +55,7 @@ This feature lets you specify a prompt, which creates AI generated DBT model fil
 
 Here is an example:
 ```bash
-    dbt-ai -f . --create-models 'Write me a model that uses all the sources available in sources.yml and joins them together using the id column'
+   dbt-ai -f . --create-models 'Write me a model that uses all the sources available in sources.yml and joins them together using the id column'
 ```
 
 ## Generated Report
