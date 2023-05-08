@@ -29,19 +29,19 @@ WARNING: This is an early phase application that may still contain bugs
 Setting up your API key is needed for all the AI features
  - Set up your OpenAI API key as an environment variable:
 ```bash
-    export OPENAI_API_KEY="your_openai_api_key"
+export OPENAI_API_KEY="your_openai_api_key"
 ```
 
 ### Generate Recommendations (AI)
 This feature will generate the recommendation report and also inform you about any models missing metadata
   1. Run the application passing in the path to your dbt project:
 ```bash
-    dbt-ai -f path/to/dbt/project
+dbt-ai -f path/to/dbt/project
 ```
 
 For example, if you are already inside your dbt project directory, you can run:
 ```bash
-   dbt-ai -f .
+dbt-ai -f .
 ```
 
 Please allow some time for the AI model to process your dbt models. The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as dbt_model_suggestions.html within the dbt project directory. Upon generation of the report, it will be opened in a new browser tab.
@@ -50,12 +50,12 @@ Please allow some time for the AI model to process your dbt models. The applicat
 This feature lets you specify a prompt, which creates AI generated DBT model files in the `models/` directory of the specified dbt project. The AI model has access to your `sources.yml` file, if you wish to refer to any sources in your prompt. Being specific will provide better results.
  1. Run the application with the --create-models flag to specify the prompt you wish to use to create your DBT models
  ```bash
-    dbt-ai -f path/to/dbt/project --create-models 'your prompt goes here'
+dbt-ai -f path/to/dbt/project --create-models 'your prompt goes here'
  ```
 
 Here is an example:
 ```bash
-   dbt-ai -f . --create-models 'Write me a model that uses all the sources available in sources.yml and joins them together using the id column'
+dbt-ai -f . --create-models 'Write me a model that uses all the sources available in sources.yml and joins them together using the id column'
 ```
 
 ## Generated Report
