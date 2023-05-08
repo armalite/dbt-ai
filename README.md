@@ -1,6 +1,6 @@
 # DBT AI
 
-An application to provide AI powered development and recommendations for your [DBT](https://www.getdbt.com/) models.
+An application that allows AI powered [DBT](https://www.getdbt.com/) development and recommendations for your [DBT](https://www.getdbt.com/) models.
 
 ## Features
  - Scans all dbt models and generates a report containing recommendations for each model
