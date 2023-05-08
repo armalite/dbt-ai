@@ -4,8 +4,8 @@ An application to provide AI powered development and recommendations for your [D
 
 ## Features
  - Scans all dbt models and generates a report containing recommendations for each model
+ - Create DBT models by using AI prompts
  - Lists dbt models that are missing associated metadata e.g. in a `schema.yml` file or equivalent
- - Use AI to generate DBT models for you based on a prompt
  - DBT model lineage description is listed in the terminal (more features coming soon)
 
 ## Installation
