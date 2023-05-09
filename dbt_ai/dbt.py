@@ -9,7 +9,7 @@ import networkx as nx
 import plotly.graph_objects as go
 import yaml
 
-from dbt_ai.ai import generate_dalle_image, generate_models, generate_response
+from dbt_ai.ai import generate_dalle_image, generate_models, generate_response, generate_response_advanced
 from dbt_ai.helper import find_yaml_files
 
 
@@ -42,39 +42,29 @@ class DbtModelProcessor:
 
         return refs
 
-    def suggest_dbt_model_improvements(self, file_path: str, model_name: str, advanced: bool = False) -> list:
+    def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> list:
         with open(file_path, "r") as f:
             content = f.read()
-
-        if advanced:
-            prompt = f"Advanced: Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names:"
-            response = generate_response_advanced(prompt)
-        else:
-            prompt = f"Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names:"
-            response = generate_response(prompt)
+        prompt = f"Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names:"
+        response = generate_response(prompt)
         return response
 
-    def model_has_metadata(self, model_name: str) -> bool:
-        for yaml_file in self.yaml_files:
-            with open(yaml_file, "r") as f:
-                try:
-                    yaml_content = yaml.safe_load(f)
-
-                    if yaml_content:
-                        for item in yaml_content.get("models", []):
-                            if isinstance(item, dict) and item.get("name") == model_name:
-                                return True
-                except yaml.YAMLError as e:
-                    print(f"Error parsing YAML file {yaml_file}: {e}")
-
-        return False
+    def suggest_dbt_model_improvements_advanced(self, file_path: str, model_name: str) -> list:
+        with open(file_path, "r") as f:
+            content = f.read()
+        prompt = f"Advanced: Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names:"
+        response = generate_response_advanced(prompt)
+        return response
 
     def process_model(self, model_file: str, advanced: bool = False):
         model_name = os.path.basename(model_file).replace(".sql", "")
 
         has_metadata = self.model_has_metadata(model_name)
         if self.api_key_available:
-            raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name, advanced=advanced)
+            if advanced:
+                raw_suggestion = self.suggest_dbt_model_improvements_advanced(model_file, model_name) 
+            else:
+                raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name)         
         else:
             raw_suggestion = ""
 
@@ -99,6 +89,20 @@ class DbtModelProcessor:
 
         return models, missing_metadata
 
+    def model_has_metadata(self, model_name: str) -> bool:
+        for yaml_file in self.yaml_files:
+            with open(yaml_file, "r") as f:
+                try:
+                    yaml_content = yaml.safe_load(f)
+
+                    if yaml_content:
+                        for item in yaml_content.get("models", []):
+                            if isinstance(item, dict) and item.get("name") == model_name:
+                                return True
+                except yaml.YAMLError as e:
+                    print(f"Error parsing YAML file {yaml_file}: {e}")
+
+        return False
 
     def generate_lineage_graph(self, models):
         # Create a directed graph
