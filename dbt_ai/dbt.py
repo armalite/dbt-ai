@@ -62,9 +62,9 @@ class DbtModelProcessor:
         has_metadata = self.model_has_metadata(model_name)
         if self.api_key_available:
             if advanced:
-                raw_suggestion = self.suggest_dbt_model_improvements_advanced(model_file, model_name) 
+                raw_suggestion = self.suggest_dbt_model_improvements_advanced(model_file, model_name)
             else:
-                raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name)         
+                raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name)
         else:
             raw_suggestion = ""
 
