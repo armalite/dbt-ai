@@ -15,11 +15,23 @@ def main() -> None:
         help="Create dbt models using the provided prompt",
         default=None,
     )
+    parser.add_argument(
+        "--advanced-rec",
+        action="store_true",
+        help="Generate only advanced recommendations for dbt models",
+    )
     args = parser.parse_args()
 
     if not args.create_models:
         processor = DbtModelProcessor(args.dbt_project_path)
-        models, missing_metadata = processor.process_dbt_models()
+
+        # Determine which suggest function to use
+        if args.advanced_rec:
+            suggestion_function = processor.suggest_dbt_model_improvements_advanced
+        else:
+            suggestion_function = processor.suggest_dbt_model_improvements
+
+        models, missing_metadata = processor.process_dbt_models(suggestion_function, advanced=args.advanced_rec)
 
         output_path = os.path.join(args.dbt_project_path, "dbt_model_suggestions.html")
 

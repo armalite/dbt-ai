@@ -43,6 +43,15 @@ def mock_generate_response():
 
 
 @pytest.fixture
+def mock_generate_response_advanced():
+    with patch.object(openai.ChatCompletion, "create") as mock_create:
+        mock_response = MagicMock()
+        mock_response.choices[0].message["content"].strip.return_value = "Use ref() function instead of hardcoding table names. Use materialized='table' parameter for better performance."
+        mock_create.return_value = mock_response
+        yield mock_create
+
+
+@pytest.fixture
 def mock_generate_models():
     with patch("dbt_ai.dbt.generate_models") as mock:
         mock.return_value = [
