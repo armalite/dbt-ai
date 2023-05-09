@@ -25,13 +25,7 @@ def main() -> None:
     if not args.create_models:
         processor = DbtModelProcessor(args.dbt_project_path)
 
-        # Determine which suggest function to use
-        if args.advanced_rec:
-            suggestion_function = processor.suggest_dbt_model_improvements_advanced
-        else:
-            suggestion_function = processor.suggest_dbt_model_improvements
-
-        models, missing_metadata = processor.process_dbt_models(suggestion_function, advanced=args.advanced_rec)
+        models, missing_metadata = processor.process_dbt_models(advanced=args.advanced_rec)
 
         output_path = os.path.join(args.dbt_project_path, "dbt_model_suggestions.html")
 
