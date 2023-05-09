@@ -4,6 +4,8 @@ This application provides AI generated recommendations on how to improve your [D
 
 ## Features
  - Scans all dbt models and generates a report containing recommendations for each model
+   - By default only basic recommendations are provided
+   - Ability to request for more advanced recommendations
  - Lists dbt models that are missing associated metadata e.g. in a `schema.yml` file or equivalent
  - Use AI to generate DBT models for you based on a prompt
  - DBT model lineage description is listed in the terminal (more features coming soon)
@@ -34,6 +36,9 @@ Setting up your API key is needed for all the AI features
 
 ### Generate Recommendations (AI)
 This feature will generate the recommendation report and also inform you about any models missing metadata
+
+#### Basic Usage
+The default setting is to provide basic recommendations
   1. Run the application passing in the path to your dbt project:
 ```bash
     dbt-ai -f path/to/dbt/project
@@ -43,6 +48,27 @@ For example, if you are already inside your dbt project directory, you can run:
 ```bash
    dbt-ai -f .
 ```
+
+#### Available Settings
+
+   - Database: specify which database system your dbt models are written for. Default: `snowflake`
+      - `-d` / `--database`
+      - Available values: `snowflake`, `postgres`, `redshift`, `bigquery`
+      - Usage example: 
+      ```bash
+      dbt ai -f . -d snowflake
+      ```
+   - Advanced Recommendation: Request for advanced recommendations. Default: No setting defaults to basic recommendations
+      - `-a` / `--advanced-rec`
+      - Available values: Only flag required
+      - Usage example: 
+      ```bash
+      dbt ai -f . -a 
+      ```
+      Or
+      ```bash
+      dbt ai -f . --advanced-req
+      ```
 
 Please allow some time for the AI model to process your dbt models. The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as dbt_model_suggestions.html within the dbt project directory. Upon generation of the report, it will be opened in a new browser tab.
 

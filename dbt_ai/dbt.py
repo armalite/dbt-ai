@@ -16,11 +16,12 @@ from dbt_ai.helper import find_yaml_files
 class DbtModelProcessor:
     """Class containing functions to process and analyse a DBT project"""
 
-    def __init__(self, dbt_project_path: str) -> None:
+    def __init__(self, dbt_project_path: str, database: str = "snowflake") -> None:
         self.dbt_project_path = dbt_project_path
         self.yaml_files = find_yaml_files(dbt_project_path)
         self.api_key_available = bool(os.getenv("OPENAI_API_KEY"))
         self.sources_yml_content = self.read_sources_yml(dbt_project_path)
+        self.database = database
         if not self.api_key_available:
             print("Warning: OPENAI_API_KEY is not set. Suggestion features will be unavailable.")
 
@@ -45,14 +46,22 @@ class DbtModelProcessor:
     def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> list:
         with open(file_path, "r") as f:
             content = f.read()
-        prompt = f"Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names:"
+        prompt = f"""Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices \
+            such as using ref instead of hardcoding table names. The suggestion should be specific to db models written in the {self.database} database system: \
+            """
         response = generate_response(prompt)
         return response
 
     def suggest_dbt_model_improvements_advanced(self, file_path: str, model_name: str) -> list:
         with open(file_path, "r") as f:
             content = f.read()
-        prompt = f"Advanced: Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names:"
+        prompt = f"""Given the following dbt model {model_name}:\n\n{content}\n\n \
+            Please provide advanced suggestions on how to improve this model.
+            The suggestion should be specific to dbt models written in the {self.database} database system 
+            If there are no advanced recommendations to provide, then do not provide anything. If you are lacking context required to provide any advanced
+            recommendations then don't provide anything. Example of an advanced recommendation include suggesting Snowflake partitioning keys when you see table names 
+            being used that are very likely to be large tables e.g. invoice or journal line tables. Note that is just one example.
+                """
         response = generate_response_advanced(prompt)
         return response
 
