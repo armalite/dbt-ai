@@ -10,29 +10,76 @@ def generate_response(prompt) -> list:
         model="gpt-3.5-turbo",
         messages=[
             {
-                "role": "system",
-                "content": "You are a helpful assistant that suggests improvements to dbt models in a concise manner but following the rules outlined below. \
-             Avoid suggestions related to the following: \
+                "role": "user",
+                "content": """You are a helpful assistant that suggests only very basic improvements to dbt models based on the model content provided to you. Apply the rules outlined below. 
+                I will provide further questions and the contents of the dbt model in a following message. Do not deviate from the rules listed below \
+                Assume you are making suggestions to a very new data engineer who is new to dbt and maybe even SQL.
+                Your suggestions should help ensure this new engineer is most effectively using dbt
+                More rules: \
                 - Do not provide suggestions regarding capturing metadata in a yml file, because this information \
-            is being provided as part of a separate check in this application \
-                - No suggestions regarding code comments \
+                  is being provided as part of a separate check in this application \
+                - Do NOT suggest writing comments in models \
                 - Do NOT suggest using LIMIT if the model is already selecting a small number of records (e.g. under 1000) \
                 - Do NOT suggest using JOIN to filter records if the model is already selecting a small number of records (e.g. under 1000) \
+                - Do NOT suggest to consider adding a comment at the top of the model to explain the purpose of the query and any relevant context
+                - Avoid providing too many conditional suggestions such as "If this table is big, then do this"
+                - If you find or say that there are no  recommendations to provide, then do not proceed any further to provide anything else. Maybe add a compliment if it's nicely written!
+                - Limit to 4 suggestions maximum \
                     \
-            For the suggestions for each model you provide, simply start it with 'Suggestions for model <model name>' \
-            followed by a new line. Do NOT forget the new line! Surround the model name with ` so it is rendered like code and that underscores in the name dont get rendered. \
-            Keep your suggestions fairly concise and easy to read. Order your suggestions in a logical order. \
-            Follow these formatting rules for every models' suggestions: \
-            Add a new line in between list entries in your suggestions to help the application render it in html more nicely. Make sure \
-            this is done for all the model suggestions. Favor using new lines for every point - do not randomize the formatting. \
-                The formatting for the suggestions for each model must be exactly the same i.e. in markdown bullet points",
+            Formatting: 
+            Suggestions for model `model_name`: \n\n
+                - suggestion 1 \n
+                - suggestion 2 \n
+                - suggestion 3 \n
+                """,
             },
             {"role": "user", "content": prompt},
         ],
-        max_tokens=400,
+        max_tokens=1024,
         n=1,
         stop=None,
-        temperature=0.5,
+        temperature=0.1,
+    )
+    return response.choices[0].message["content"].strip()
+
+
+def generate_response_advanced(prompt) -> list:
+    example_advanced_recommendations = """
+        - Consider using a window function to calculate rolling averages or cumulative sums for a large dataset. This can improve query performance by reducing the need to perform multiple passes over the same data.
+        - If a model contains a large number of columns, consider splitting it into multiple models to improve query performance and maintainability.
+        - Consider using a common table expression (CTE) to break down a complex query into smaller, more manageable pieces. This can improve query readability and maintainability.
+        - If a model contains a large amount of data, consider using a partitioning key to improve query performance. This can help distribute the data across multiple nodes and reduce the amount of data that needs to be scanned.
+        - Consider using a temporary table to store intermediate results for a complex query. This can help simplify the query logic and improve query performance by reducing the need to repeat certain calculations.
+        - If a model contains a large number of joins, consider using a star schema or a snowflake schema to simplify the data model and improve query performance.
+    """
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "user",
+                "content": f"""You are a helpful assistant that suggests only very advanced improvements to dbt models based on the model content provided to you. Apply the rules outlined below. 
+                I will provide further questions and the contents of the dbt model in a following message. Do not deviate from the rules listed below \
+                Assume you are making suggestions to a highly skilled data engineer with strong knowledge of dbt and SQL.  \
+                More rules: \
+                - Avoid providing too many conditional suggestions such as "If this table is big, then do this"
+                - If you find or say that there are no advanced recommendations to provide, then do not proceed any further to provide non-advanced recommendations. Maybe add a compliment if it's nicely written!
+                - Limit to 4 suggestions maximum 
+                - Here are a number of example recommendations that can be classified as advanced. Your recommendations should classify equally as advanced as these recommendations (but do not need to be the same):
+                    {example_advanced_recommendations}
+                    
+            Formatting: 
+            Suggestions for model `model_name`: \n\n
+                - suggestion 1 \n
+                - suggestion 2 \n
+                - suggestion 3 \n
+                """,
+            },
+            {"role": "user", "content": prompt},
+        ],
+        max_tokens=1024,
+        n=1,
+        stop=None,
+        temperature=0,
     )
     return response.choices[0].message["content"].strip()
 

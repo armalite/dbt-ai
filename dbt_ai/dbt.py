@@ -1,24 +1,27 @@
+# flake8: noqa
+
 import glob
 import os
 import re
-import yaml
-import uuid
-import networkx as nx
-from pyvis.network import Network
-import plotly.graph_objects as go
+from typing import Callable
 
-from dbt_ai.ai import generate_response, generate_dalle_image, generate_models
+import networkx as nx
+import plotly.graph_objects as go
+import yaml
+
+from dbt_ai.ai import generate_dalle_image, generate_models, generate_response, generate_response_advanced
 from dbt_ai.helper import find_yaml_files
 
 
 class DbtModelProcessor:
     """Class containing functions to process and analyse a DBT project"""
 
-    def __init__(self, dbt_project_path) -> None:
+    def __init__(self, dbt_project_path: str, database: str = "snowflake") -> None:
         self.dbt_project_path = dbt_project_path
         self.yaml_files = find_yaml_files(dbt_project_path)
         self.api_key_available = bool(os.getenv("OPENAI_API_KEY"))
         self.sources_yml_content = self.read_sources_yml(dbt_project_path)
+        self.database = database
         if not self.api_key_available:
             print("Warning: OPENAI_API_KEY is not set. Suggestion features will be unavailable.")
 
@@ -43,9 +46,57 @@ class DbtModelProcessor:
     def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> list:
         with open(file_path, "r") as f:
             content = f.read()
-        prompt = f"Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names:"
+        prompt = f"""Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices \
+            such as using ref instead of hardcoding table names. The suggestion should be specific to db models written in the {self.database} database system: \
+            """
         response = generate_response(prompt)
         return response
+
+    def suggest_dbt_model_improvements_advanced(self, file_path: str, model_name: str) -> list:
+        with open(file_path, "r") as f:
+            content = f.read()
+        prompt = f"""Given the following dbt model {model_name}:\n\n{content}\n\n \
+            Please provide advanced suggestions on how to improve this model.
+            The suggestion should be specific to dbt models written in the {self.database} database system 
+            If there are no advanced recommendations to provide, then do not provide anything. If you are lacking context required to provide any advanced
+            recommendations then don't provide anything. Example of an advanced recommendation include suggesting Snowflake partitioning keys when you see table names 
+            being used that are very likely to be large tables e.g. invoice or journal line tables. Note that is just one example.
+                """
+        response = generate_response_advanced(prompt)
+        return response
+
+    def process_model(self, model_file: str, advanced: bool = False):
+        model_name = os.path.basename(model_file).replace(".sql", "")
+
+        has_metadata = self.model_has_metadata(model_name)
+        if self.api_key_available:
+            if advanced:
+                raw_suggestion = self.suggest_dbt_model_improvements_advanced(model_file, model_name)
+            else:
+                raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name)
+        else:
+            raw_suggestion = ""
+
+        refs = self.get_model_refs(model_file)
+
+        return {
+            "model_name": model_name,
+            "metadata_exists": has_metadata,
+            "suggestions": raw_suggestion,
+            "refs": refs,
+        }
+
+    def process_dbt_models(self, advanced: bool = False):
+        model_files = glob.glob(os.path.join(self.dbt_project_path, "models/**/*.sql"), recursive=True)
+        models = [self.process_model(model_file, advanced) for model_file in model_files]
+        missing_metadata = []
+
+        # Check for models without metadata
+        for model in models:
+            if not model["metadata_exists"]:
+                missing_metadata.append(model["model_name"])
+
+        return models, missing_metadata
 
     def model_has_metadata(self, model_name: str) -> bool:
         for yaml_file in self.yaml_files:
@@ -62,58 +113,28 @@ class DbtModelProcessor:
 
         return False
 
-    def process_model(self, model_file: str) -> dict:
-        model_name = os.path.basename(model_file).replace(".sql", "")
-
-        has_metadata = self.model_has_metadata(model_name)
-        if self.api_key_available:
-            raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name)
-        else:
-            raw_suggestion = ""
-
-        refs = self.get_model_refs(model_file)
-
-        return {
-            "model_name": model_name,
-            "metadata_exists": has_metadata,
-            "suggestions": raw_suggestion,
-            "refs": refs,
-        }
-
-    def process_dbt_models(self):  # flake8: noqa
-        model_files = glob.glob(os.path.join(self.dbt_project_path, "models/**/*.sql"), recursive=True)
-        models = [self.process_model(model_file) for model_file in model_files]
-        missing_metadata = []
-
-        # Check for models without metadata
-        for model in models:
-            if not model["metadata_exists"]:
-                missing_metadata.append(model["model_name"])
-
-        return models, missing_metadata
-
     def generate_lineage_graph(self, models):
         # Create a directed graph
-        G = nx.DiGraph()
+        gph = nx.DiGraph()
 
         # Add nodes for each model
         for model in models:
-            G.add_node(model["model_name"], metadata_exists=model["metadata_exists"])
+            gph.add_node(model["model_name"], metadata_exists=model["metadata_exists"])
 
         # Add edges based on ref() calls
         for model in models:
             refs = model["refs"]
             for ref in refs:
-                G.add_edge(ref, model["model_name"])
+                gph.add_edge(ref, model["model_name"])
 
-        return G
+        return gph
 
-    def generate_lineage_description(self, G: nx.DiGraph) -> str:
-        nodes = list(nx.topological_sort(G))
+    def generate_lineage_description(self, gph: nx.DiGraph) -> str:
+        nodes = list(nx.topological_sort(gph))
 
         description = ""  # "The following DBT models are used:\n\n"
         for node in nodes:
-            parents = list(G.predecessors(node))
+            parents = list(gph.predecessors(node))
             if parents:
                 parent_names = ", ".join(parents)
                 description += f"{node} depends on {parent_names}\n"
@@ -123,9 +144,9 @@ class DbtModelProcessor:
         return description
 
     def generate_lineage(self, dbt_models: list[dict]):
-        G = self.generate_lineage_graph(dbt_models)
-        description = self.generate_lineage_description(G)
-        return description, G
+        gph = self.generate_lineage_graph(dbt_models)
+        description = self.generate_lineage_description(gph)
+        return description, gph
 
     def generate_image(self, description: str) -> None:
         image_binary = generate_dalle_image(description)
@@ -135,8 +156,8 @@ class DbtModelProcessor:
         with open(image_path, "wb") as f:
             f.write(image_binary)
 
-    def plot_directed_graph(self, G: nx.DiGraph):
-        pos = nx.spring_layout(G, seed=42)
+    def plot_directed_graph(self, gph: nx.DiGraph):
+        pos = nx.spring_layout(gph, seed=42)
 
         node_trace = go.Scatter(
             x=[],
@@ -160,20 +181,20 @@ class DbtModelProcessor:
             name="Edges",
         )
 
-        for node in G.nodes():
+        for node in gph.nodes():
             x, y = pos[node]
             node_trace["x"] += tuple([x])
             node_trace["y"] += tuple([y])
             node_trace["text"] += tuple([node])
 
             # set marker color and/or text label based on whether the model has metadata or not
-            if "metadata_exists" in G.nodes[node] and not G.nodes[node]["metadata_exists"]:
+            if "metadata_exists" in gph.nodes[node] and not gph.nodes[node]["metadata_exists"]:
                 node_trace["marker"]["color"] = missing_metadata_color
                 node_trace["text"] += tuple(["MISSING METADATA"])
             else:
                 node_trace["marker"]["color"] = "rgb(71, 122, 193)"
 
-        for edge in G.edges():
+        for edge in gph.edges():
             x0, y0 = pos[edge[0]]
             x1, y1 = pos[edge[1]]
             edge_trace["x"] += tuple([x0, x1, None])
@@ -194,14 +215,14 @@ class DbtModelProcessor:
         fig.show()
 
     def create_dbt_models(self, prompt: str) -> None:
-        print(f"Attempting to create dbt models based on prompt")
+        print("Attempting to create dbt models based on prompt")
         sources_yml = self.sources_yml_content if self.sources_yml_content else ""
         response = generate_models(prompt, sources_yml)
 
         model_delimiter = "===\n\n"
         response_lines = response[0].split(model_delimiter)
 
-        for i, model_str in enumerate(response_lines):
+        for _i, model_str in enumerate(response_lines):
             if not model_str.strip():
                 continue
 

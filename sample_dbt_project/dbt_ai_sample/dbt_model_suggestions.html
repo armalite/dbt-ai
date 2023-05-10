@@ -103,11 +103,10 @@
                 <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
 
 <ul>
-<li>Consider adding a schema name prefix to the model name to make it more clear which schema the model belongs to.</li>
-<li>Instead of using a hard-coded table name in the SQL query, use the <code>ref()</code> function to reference the <code>my_first_dbt_model</code> model. This will make the query more adaptable to changes in the upstream model.</li>
-<li>Consider using a more specific column name instead of <code>*</code> in the <code>SELECT</code> statement to make the query more efficient and easier to understand.</li>
-<li>If the <code>id</code> column is unique in the <code>my_first_dbt_model</code> model, consider using <code>SELECT DISTINCT</code> to avoid returning duplicate rows.</li>
-<li>Consider adding a comment to the model to describe its purpose and any important details about its implementation.</li>
+<li>Consider using a materialized view instead of a plain SQL query. This can improve query performance by precomputing the results and storing them in a table-like structure.</li>
+<li>If the <code>my_first_dbt_model</code> table is very large, consider using a partitioning key to improve query performance. This can help distribute the data across multiple nodes and reduce the amount of data that needs to be scanned.</li>
+<li>Consider adding a comment to the model to explain the purpose of the query and any assumptions made. This can improve the maintainability of the code and make it easier for other users to understand.</li>
+<li>If the <code>my_first_dbt_model</code> table is frequently updated, consider using a timestamp column to track changes and only selecting the latest version of the data. This can improve query performance and ensure that the results are up-to-date.</li>
 </ul>
 </p>
             </div>
@@ -117,10 +116,10 @@
                 <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using <code>ref</code> instead of hardcoding the table name in the model. This will make the model more modular and easier to maintain in case the table name changes. </li>
-<li>Avoid using <code>select *</code> in the model and instead specify the columns explicitly. This will make the model more efficient by reducing the amount of data being queried. </li>
-<li>Consider adding a description to the model using the <code>{{ doc() }}</code> jinja function. This will provide context and documentation for the model. </li>
-<li>Consider adding a schema test to ensure that the <code>id</code> column exists in the table. This will provide an additional level of data validation.</li>
+<li>Consider adding a Snowflake partitioning key to the <code>SOME_TABLE</code> table if it is expected to contain a large amount of data. This can help improve query performance by distributing the data across multiple nodes and reducing the amount of data that needs to be scanned.</li>
+<li>If the <code>SOME_TABLE</code> table is expected to contain a large number of columns, consider creating a separate dbt model that selects only the necessary columns. This can help improve query performance and maintainability.</li>
+<li>Consider using a common table expression (CTE) to break down the query into smaller, more manageable pieces. This can improve query readability and maintainability.</li>
+<li>If the <code>SOME_TABLE</code> table is expected to contain a large amount of data, consider using a window function to calculate rolling averages or cumulative sums. This can improve query performance by reducing the need to perform multiple passes over the same data.</li>
 </ul>
 </p>
             </div>
@@ -130,11 +129,7 @@
                 <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
 
 <ul>
-<li>Consider using <code>ref()</code> instead of hardcoding table names in your SQL queries. This will make your code more modular and easier to maintain in the long run.</li>
-<li>It's generally a good practice to include a schema prefix when referencing tables. For example, instead of <code>source_data</code>, use <code>{{ ref('my_schema.source_data') }}</code>.</li>
-<li>Since this model is using a common table expression (CTE), consider giving it a name to make your code more readable. For example, you can name it <code>source_data_cte</code> by changing the <code>with</code> statement to <code>with source_data_cte as (</code>.</li>
-<li>It's a good practice to explicitly list out the columns you want to select instead of using <code>*</code>. This can help prevent unexpected changes in your output if the underlying table schema changes.</li>
-<li>Consider adding a comment at the top of your SQL file to describe what this model is doing and any important details about the data it's selecting.</li>
+<li>Since this model is very simple and only has one source table, there are no advanced recommendations to provide. However, the model is nicely written and easy to understand.</li>
 </ul>
 </p>
             </div>
