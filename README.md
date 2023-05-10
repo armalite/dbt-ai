@@ -51,14 +51,14 @@ dbt-ai -f .
 
 #### Available Settings
 
-   - Database: specify which database system your dbt models are written for. Default: `snowflake`
+   - *Database:* specify which database system your dbt models are written for. Default: `snowflake`
       - `-d` / `--database`
       - Available values: `snowflake`, `postgres`, `redshift`, `bigquery`
       - Usage example: 
       ```bash
       dbt ai -f . -d snowflake
       ```
-   - Advanced Recommendation: Request for advanced recommendations. Default: No setting defaults to basic recommendations
+   - *Advanced Recommendations:* Request for advanced recommendations. Default: No setting defaults to basic recommendations
       - `-a` / `--advanced-rec`
       - Available values: Only flag required
       - Usage example: 
