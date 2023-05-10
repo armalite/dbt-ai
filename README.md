@@ -13,7 +13,7 @@ An application that allows AI powered [DBT](https://www.getdbt.com/) development
 ## Installation
 You can install the application here
 ```bash
-pip install dbt-ai==0.1.3a0
+pip install dbt-ai==0.2.0
 ```
 
 WARNING: This is an early phase application that may still contain bugs
