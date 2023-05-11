@@ -1,8 +1,6 @@
 name: Release
 on:
   push:
-    #tags:
-    #  - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10, etc.
     branches:
       - main
 jobs:
@@ -23,6 +21,16 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+      - name: Update package name
+        run: |
+          PACKAGE_NAME=dbt-ai-deployer
+          TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          REPO="${{ github.repository }}"
+          SHA="${{ github.sha }}"
+          API_URL="https://api.github.com/repos/$REPO/packages/container/$SHA"
+          AUTH_HEADER="Authorization: Bearer $TOKEN"
+          curl -X PATCH -H "$AUTH_HEADER" -H "Accept: application/vnd.github.v3+json" "$API_URL" -d "{\"name\":\"$PACKAGE_NAME\"}"
+
 #  publish:
 #   name: Publish to PyPI
 #    runs-on: ubuntu-latest
