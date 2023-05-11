@@ -27,7 +27,5 @@ jobs:
       # Use the image from build-and-push step
       - name: Publish to PyPI
         run: |
-          docker run --rm dbt-ai-deployer make publish-test
-        env:
-          PYPI_USERNAME: __token__
-          PYPI_PASSWORD_PROD: ${{ secrets.PYPI_API_TOKEN }}
+          docker run --rm -e PYPI_USERNAME='__token__' -e PYPI_PASSWORD_TEST='${{ secrets.PYPI_PASSWORD_TEST }}' dbt-ai-deployer make publish-test
+
