@@ -29,3 +29,16 @@ jobs:
         run: |
           docker run --rm -e PYPI_USERNAME='__token__' -e PYPI_PASSWORD_TEST='${{ secrets.PYPI_API_TOKEN }}' dbt-ai-deployer make publish-prod
 
+      - name: Update version in pyproject.toml
+        run: |
+          TAG_NAME=${{ github.ref }}
+          VERSION=$(echo $TAG_NAME | sed 's/refs\/tags\/v//')
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pyproject.toml
+          git commit -m "Update version in pyproject.toml"
+          git push
