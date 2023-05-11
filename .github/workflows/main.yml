@@ -39,12 +39,10 @@ jobs:
             -v $PWD:/app \
             dbt-ai-deployer make publish-prod
     
-
-      - name: Commit and push pyproject.yml changes
+      - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git checkout main
           git add pyproject.toml
           git commit -m "Update version in pyproject.toml"
-          git push origin HEAD:main
+          git push origin main
