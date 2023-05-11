@@ -1,8 +1,8 @@
 name: Release
 on:
-  push:
-    branches:
-      - main
+  release:
+    types:
+      - created
 
 jobs:
   build-and-push:
@@ -27,5 +27,5 @@ jobs:
       # Use the image from build-and-push step
       - name: Publish to PyPI
         run: |
-          docker run --rm -e PYPI_USERNAME='__token__' -e PYPI_PASSWORD_TEST='${{ secrets.PYPI_API_TOKEN_TEST }}' dbt-ai-deployer make publish-test
+          docker run --rm -e PYPI_USERNAME='__token__' -e PYPI_PASSWORD_TEST='${{ secrets.PYPI_API_TOKEN }}' dbt-ai-deployer make publish-prod
 
