@@ -44,6 +44,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          git checkout main
           git add pyproject.toml
           git commit -m "Update version in pyproject.toml"
-          git push
+          git push origin HEAD:main
