@@ -5,3 +5,5 @@ markdown2~=2.4
 pyvis~=0.3.2
 plotly~=5.14
 numpy~=1.24
+twine~=4.0
+pytest~=7.3
