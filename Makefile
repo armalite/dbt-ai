@@ -9,6 +9,9 @@ testpypi = https://test.pypi.org/legacy/
 clean-build:
 	rm -rf dist
 
+build-image:
+	docker build -t dbt-ai-deployer .
+
 build:
 	pip install --upgrade build
 

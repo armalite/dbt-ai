@@ -2,10 +2,8 @@ FROM python:3.10-slim-buster
 
 WORKDIR /app
 
-COPY pyproject.toml .
+COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir poetry \
-    && poetry config virtualenvs.create false \
-    && poetry install --no-root --no-dev
+    && pip install --no-cache-dir -r requirements.txt
 
 COPY . .
