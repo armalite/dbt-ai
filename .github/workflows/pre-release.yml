@@ -15,6 +15,7 @@ jobs:
       - name: Sync pyproject.toml with release version
         id: sync_version
         run: |
+          git switch -c main
           TAG_NAME=${{ github.ref }}
           VERSION=$(echo $TAG_NAME | sed 's/refs\/tags\/v//')
           RELEASE_VERSION=${VERSION/-pre/}  # Remove '-pre' from the version
@@ -25,8 +26,7 @@ jobs:
       - name: Commit and push changes to pyproject.toml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git switch -c main
+        run: |       
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add pyproject.toml
