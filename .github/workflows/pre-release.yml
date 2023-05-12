@@ -41,8 +41,7 @@ jobs:
           draft: false
           prerelease: false
 
-  build-and-push:
-    if: "!github.event.release.prerelease"
+  build-and-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
