@@ -2,7 +2,7 @@ name: Release
 on:
   release:
     types:
-      - prereleased
+      - created
 
 jobs:
   build-and-push:
@@ -51,9 +51,9 @@ jobs:
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.sync_version.outputs.release_version }}
-          release_name: Release ${{ steps.sync_version.outputs.release_version }}
+         with:
+          tag_name: "v${{ steps.sync_version.outputs.release_version }}"
+          release_name: "Release v${{ steps.sync_version.outputs.release_version }}"
           draft: false
           prerelease: false
 
