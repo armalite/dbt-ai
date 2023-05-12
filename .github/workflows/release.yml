@@ -2,7 +2,7 @@ name: Release
 on:
   release:
     types:
-      - created
+      - released
 
 jobs:
   build-and-push:
@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        
+
       # Build deployer image to use for PyPI publishing
       - name: Build and push Docker image
         id: build
