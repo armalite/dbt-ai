@@ -9,13 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          ref: main
 
       # Update the checked out pyproject.toml with the version number of the release
       - name: Sync pyproject.toml with release version
         id: sync_version
         run: |
-          git switch -c main
           TAG_NAME=${{ github.ref }}
           VERSION=$(echo $TAG_NAME | sed 's/refs\/tags\/v//')
           RELEASE_VERSION=${VERSION/-pre/}  # Remove '-pre' from the version
