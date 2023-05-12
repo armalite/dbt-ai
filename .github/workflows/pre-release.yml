@@ -23,16 +23,11 @@ jobs:
           sed -i "s/^version = \".*\"/version = \"$RELEASE_VERSION\"/" pyproject.toml
           echo "::set-output name=release_version::$RELEASE_VERSION"
 
-      # Push the updated pyproject.toml back into the main branch
-      - name: Commit and push changes to pyproject.toml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |       
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add pyproject.toml
           git commit -m "Update version in pyproject.toml"
-          git push 
+          git push
 
       - name: Create release
         id: create_release
