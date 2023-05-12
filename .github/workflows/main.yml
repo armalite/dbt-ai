@@ -45,4 +45,4 @@ jobs:
           git config --local user.name "GitHub Action"
           git add pyproject.toml
           git commit -m "Update version in pyproject.toml"
-          git push origin HEAD:main
+          git push --force origin HEAD:main
