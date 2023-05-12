@@ -6,6 +6,7 @@ on:
 
 jobs:
   pre-release-steps:
+    if: "github.event.release.prerelease"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -45,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Build deployer image to use for PyPI publishing
       - name: Build and push Docker image
