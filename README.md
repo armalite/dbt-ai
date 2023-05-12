@@ -11,11 +11,21 @@ An application that allows AI powered [DBT](https://www.getdbt.com/) development
  - DBT model lineage description is listed in the terminal (more features coming soon)
 
 ## Installation
-You can install the application here
+First time installation:
 ```bash
-pip install dbt-ai==0.2.0
+pip install dbt-ai
 ```
 
+To upgrade to the latest version:
+```bash
+pip install dbt-ai --upgrade
+```
+
+To install a specific version:
+```bash
+pip install dbt-ai==<version>
+```
+Replace `<version>` with your desired version e.g. `0.2.0`. You can view available versions in the [Releases](https://github.com/armalite/dbt-ai/releases) section of this repo or on our [Pypi page](https://pypi.org/project/dbt-ai/).
 WARNING: This is an early phase application that may still contain bugs
 
 ## Prerequisites
