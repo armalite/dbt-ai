@@ -8,7 +8,9 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
       # Build deployer image to use for PyPI publishing
       - name: Build and push Docker image
         id: build
