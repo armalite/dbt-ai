@@ -1,0 +1,27 @@
+name: Release
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+
+      # Build deployer image to use for PyPI publishing
+      - name: Build and push Docker image
+        id: build
+        run: docker build -t dbt-ai-deployer .
+        env:
+          DOCKER_BUILDKIT: 1
+
+      # Create release and publish to PyPI only for non-prerelease releases
+      - name: Publish to PyPI
+        if: "!github.event.release.prerelease"
+        run: |
+          docker run --rm \
+            -e PYPI_USERNAME='__token__' \
+            -e PYPI_PASSWORD_PROD='${{ secrets.PYPI_API_TOKEN }}' \
+            -v $PWD:/app \
+            dbt-ai-deployer make publish-prod
