@@ -27,7 +27,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add pyproject.toml
-          git commit -m "Update version in pyproject.toml"
+          git commit -m "Pre-release: Sync version to pyproject.toml"
           git push
 
       - name: Create release
