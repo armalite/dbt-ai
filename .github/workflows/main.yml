@@ -40,6 +40,8 @@ jobs:
             dbt-ai-deployer make publish-prod
     
       - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
