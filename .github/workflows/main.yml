@@ -18,13 +18,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Build deployer image to use for pypi publishing
       - name: Build and push Docker image
         id: build
         run: docker build -t dbt-ai-deployer .
         env:
           DOCKER_BUILDKIT: 1
 
-      - name: Update version in pyproject.toml
+      # Update the checked out pyproject.toml with the version number of the release
+      - name: Sync pyproject.toml with release version
         run: |
           TAG_NAME=${{ github.ref }}
           VERSION=$(echo $TAG_NAME | sed 's/refs\/tags\/v//')
@@ -38,8 +40,9 @@ jobs:
             -e PYPI_PASSWORD_PROD='${{ secrets.PYPI_API_TOKEN }}' \
             -v $PWD:/app \
             dbt-ai-deployer make publish-prod
-    
-      - name: Commit and push changes
+
+      # Push the updated pyproject.toml back into the main branch
+      - name: Commit and push changes to pyproject.toml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
