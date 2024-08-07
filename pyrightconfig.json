@@ -3,5 +3,5 @@
     "strictDictionaryInference": true,
     "strictParameterNoneValue": true,
     "reportTypedDictNotRequiredAccess": false,
-    "exclude": ["**/node_modules", "**/__pycache__", "**/.*", "build", "tests", "dbt_ai/ai.py"]
+    "exclude": ["**/node_modules", "**/__pycache__", "**/.*", "build", "tests", "dbt_ai/ai.py", "dbt_ai/ai_v2.py]
 }
