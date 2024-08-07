@@ -9,7 +9,7 @@ import networkx as nx
 import plotly.graph_objects as go
 import yaml
 
-from dbt_ai.ai import generate_dalle_image, generate_models, generate_response, generate_response_advanced
+from dbt_ai.ai import generate_models, generate_response, generate_response_advanced
 from dbt_ai.helper import find_yaml_files
 
 

@@ -84,23 +84,6 @@ def generate_response_advanced(prompt) -> list:
     return response.choices[0].message["content"].strip()
 
 
-def generate_dalle_image(prompt: str, image_size: str = "1024x1024"):
-    final_prompt = f"Draw a set of connected balls representing the nodes and edges of the following graph description: \
-                    {prompt} \
-                    "
-    print(f"Generating AI image using DALL-E with the following prompt: {final_prompt}")
-    response = openai.Image.create(
-        prompt=prompt,
-        n=1,
-        size=image_size,
-    )
-
-    image_url = response.data[0].url.strip()
-    image_binary = requests.get(image_url).content
-
-    return image_binary
-
-
 def generate_models(prompt: str, sources_yml: str) -> list[str]:
     # Combine prompt and sources.yml content
     prompt_with_sources = f"{prompt}\n\nSources YAML:\n\n{sources_yml}\n\n"

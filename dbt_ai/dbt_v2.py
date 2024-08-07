@@ -1,13 +1,17 @@
 import glob
 import os
 import re
-from typing import Callable
 
 import networkx as nx
-import plotly.graph_objects as go
 import yaml
 
-from dbt_ai.ai import generate_dalle_image, generate_models, generate_response, generate_response_advanced, generate_prompt
+from dbt_ai.ai import (
+    generate_models,
+    generate_prompt,
+    generate_response,
+    generate_response_advanced,
+)
+from dbt_ai.helper import find_yaml_files
 
 
 class DbtModelProcessor:
@@ -43,14 +47,14 @@ class DbtModelProcessor:
     def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> dict:
         with open(file_path, "r") as f:
             content = f.read()
-        prompt = generate_prompt(content, model_name, level='basic')
+        prompt = generate_prompt(content, model_name, level="basic")
         response = generate_response(prompt)
         return response
 
     def suggest_dbt_model_improvements_advanced(self, file_path: str, model_name: str) -> dict:
         with open(file_path, "r") as f:
             content = f.read()
-        prompt = generate_prompt(content, model_name, level='advanced')
+        prompt = generate_prompt(content, model_name, level="advanced")
         response = generate_response_advanced(prompt)
         return response
 
@@ -102,7 +106,6 @@ class DbtModelProcessor:
 
         return False
 
-
     def generate_lineage_description(self, gph: nx.DiGraph) -> str:
         nodes = list(nx.topological_sort(gph))
 
@@ -121,7 +124,6 @@ class DbtModelProcessor:
         gph = self.generate_lineage_graph(dbt_models)
         description = self.generate_lineage_description(gph)
         return description, gph
-
 
     def create_dbt_models(self, prompt: str) -> None:
         print("Attempting to create dbt models based on prompt")
