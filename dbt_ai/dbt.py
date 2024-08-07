@@ -148,14 +148,6 @@ class DbtModelProcessor:
         description = self.generate_lineage_description(gph)
         return description, gph
 
-    def generate_image(self, description: str) -> None:
-        image_binary = generate_dalle_image(description)
-        image_path = f"{self.dbt_project_path}/lineage.png"
-        print(f"Saving generated lineage image in {image_path}")
-        # Write image to file
-        with open(image_path, "wb") as f:
-            f.write(image_binary)
-
     def plot_directed_graph(self, gph: nx.DiGraph):
         pos = nx.spring_layout(gph, seed=42)
 
