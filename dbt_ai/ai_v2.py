@@ -71,8 +71,7 @@ def generate_response(prompt: str) -> dict:
         stop=None,
         temperature=0.1,
     )
-    response_content = response.choices[0].message["content"].strip()
-    return json.loads(response_content)
+    return response.choices[0].message["content"].strip()
 
 
 def generate_response_advanced(prompt: str) -> dict:
