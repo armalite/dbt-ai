@@ -1,5 +1,5 @@
-import os
 import argparse
+
 from dbt_ai.dbt import DbtModelProcessor
 from dbt_ai.report import generate_html_report
 

@@ -36,7 +36,9 @@ class DbtModelProcessor:
     def get_model_refs(self, content: str) -> List[str]:
         return re.findall(r"ref\(['\"]([\w\.]+)['\"]\)", content)
 
-    def process_model(self, model_path: str, level: str = "basic", provider: str = "openai", model: str = "gpt-4") -> dict:
+    def process_model(
+        self, model_path: str, level: str = "basic", provider: str = "openai", model: str = "gpt-4"
+    ) -> dict:
         model_name = os.path.basename(model_path).replace(".sql", "")
         sql = self.read_model_file(model_path)
         has_metadata = self.model_has_metadata(model_name)
@@ -51,7 +53,7 @@ class DbtModelProcessor:
                     level=level,
                     provider=provider,
                     model=model,
-                    classification=classification  # ✅ New argument
+                    classification=classification,  # ✅ New argument
                 )
             except Exception as e:
                 print(f"Failed to review model {model_name}: {e}")
