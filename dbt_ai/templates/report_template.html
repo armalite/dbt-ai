@@ -1,119 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DBT Model Improvement Suggestions</title>
-    <style>
-        /* Add custom CSS styles here */
-
-        /* Body style */
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f2f2f2;
-        }
-
-        /* Header style */
-        header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #333;
-            padding: 20px;
-            color: #fff;
-        }
-
-        h1 {
-            font-size: 36px;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        /* Container style */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-        }
-
-        /* Model style */
-        .model {
-            margin-bottom: 40px;
-        }
-
-        /* Model name style */
-        .model h2 {
-            font-size: 24px;
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-
-        /* Suggestions style */
-        .model p {
-            font-size: 16px;
-            line-height: 1.5;
-            color: #333;
-            margin: 0;
-            padding: 10px 20px;
-            border-radius: 5px;
-            background-color: #f2f2f2;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
-        }
-
-        /* Missing metadata style */
-        .missing-metadata {
-            margin-top: 40px;
-            padding: 20px;
-            border-radius: 5px;
-            background-color: #f2f2f2;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
-        }
-
-        /* Missing metadata header style */
-        .missing-metadata h2 {
-            font-size: 24px;
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-
-        /* Missing metadata list style */
-        .missing-metadata ul {
-            font-size: 16px;
-            line-height: 1.5;
-            color: #333;
-            margin: 0;
-            padding: 0 0 0 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DBT Model Improvement Suggestions</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f2f2f2;
+    }
+    header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #333;
+      padding: 20px;
+      color: #fff;
+    }
+    h1, h2 {
+      margin: 0 0 10px 0;
+    }
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .model {
+      margin-bottom: 40px;
+    }
+    .section {
+      margin-top: 10px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 5px;
+    }
+    .missing-metadata {
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #f9eaea;
+      border-left: 6px solid #cc0000;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>DBT Model Improvement Suggestions</h1>
-    </header>
-    <div class="container">
-        <h2>AI Generated Suggestions</h2>
-        {% for model in models %}
-            <div class="model">
-                <h2>{{ model.model_name }}</h2>
-                <p>{{ model.suggestions|markdown }}</p>
-            </div>
-        {% endfor %}
-        <div class="missing-metadata">
-            <h2>Models Missing Metadata</h2>
-            {% if missing_metadata %}
-                <ul>
-                    {% for missing_meta_model in missing_metadata %}
-                        <li>{{ missing_meta_model }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>All models have metadata.</
-            {% endif %}
-        </div>
+  <header>
+    <h1>DBT Model Improvement Suggestions</h1>
+  </header>
+  <div class="container">
+    <h2>AI-Generated Reviews</h2>
+    {% for model in models %}
+      <div class="model">
+        <h2>{{ model.model_name }}</h2>
+        <p><strong>Summary:</strong> {{ model.summary }}</p>
+
+        {% if model.suggestions %}
+          <div class="section">
+            <strong>Suggestions:</strong>
+            <ul>
+              {% for item in model.suggestions %}
+                <li>{{ item.suggestion }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if model.style_feedback %}
+          <div class="section">
+            <strong>Style Feedback:</strong>
+            <ul>
+              {% for item in model.style_feedback %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if model.test_recommendations %}
+          <div class="section">
+            <strong>Test Recommendations:</strong>
+            <ul>
+              {% for item in model.test_recommendations %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if model.tag_suggestions %}
+          <div class="section">
+            <strong>Tag Suggestions:</strong>
+            <ul>
+              {% for item in model.tag_suggestions %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="missing-metadata">
+      <h2>Models Missing Metadata</h2>
+      {% if missing_metadata %}
+        <ul>
+          {% for missing_meta_model in missing_metadata %}
+            <li>{{ missing_meta_model }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>All models have metadata.</p>
+      {% endif %}
+    </div>
+  </div>
 </body>
 </html>
