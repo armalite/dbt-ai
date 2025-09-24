@@ -11,6 +11,7 @@ import yaml
 
 from dbt_ai.ai import generate_dalle_image, generate_models, generate_response, generate_response_advanced
 from dbt_ai.helper import find_yaml_files
+from dbt_ai.config import Config
 
 
 class DbtModelProcessor:
@@ -19,7 +20,7 @@ class DbtModelProcessor:
     def __init__(self, dbt_project_path: str, database: str = "snowflake") -> None:
         self.dbt_project_path = dbt_project_path
         self.yaml_files = find_yaml_files(dbt_project_path)
-        self.api_key_available = bool(os.getenv("OPENAI_API_KEY"))
+        self.api_key_available = Config.is_api_available()
         self.sources_yml_content = self.read_sources_yml(dbt_project_path)
         self.database = database
         if not self.api_key_available:

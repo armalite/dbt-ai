@@ -8,32 +8,33 @@ from typing import List, Optional, Dict, Any
 try:
     # Try modern OpenAI API first
     from openai import OpenAI
+
     MODERN_OPENAI = True
     OpenAIClient = OpenAI
 except ImportError:
     # Fallback to legacy API
     import openai
+
     MODERN_OPENAI = False
     OpenAIClient = None
 
 from pydantic import ValidationError
 
 from .models import DbtModelSuggestions, DbtSuggestion, DbtModelsResponse, DbtModelDefinition
+from .config import Config
 
 
-# Configuration
-DEFAULT_MODEL = "gpt-4o-mini"  # Cost effective but high quality
-FALLBACK_MODEL = "gpt-3.5-turbo"  # Fallback for compatibility
-MAX_TOKENS = 4000
-TEMPERATURE = 0.1
+# Configuration - now using Config class
+MAX_TOKENS = Config.get_max_tokens()
+TEMPERATURE = Config.get_temperature()
 
 
 def get_openai_client() -> Optional[Any]:
     """Get OpenAI client if API key is available"""
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = Config.get_openai_api_key()
     if not api_key:
         return None
-    
+
     if MODERN_OPENAI:
         return OpenAI(api_key=api_key)
     else:
@@ -44,42 +45,43 @@ def get_openai_client() -> Optional[Any]:
 def get_model_name(advanced: bool = False) -> str:
     """Get appropriate model name based on task complexity"""
     if advanced:
-        return "gpt-4o" if MODERN_OPENAI else "gpt-3.5-turbo"
-    return DEFAULT_MODEL if MODERN_OPENAI else "gpt-3.5-turbo"
+        return Config.get_advanced_model() if MODERN_OPENAI else Config.get_fallback_model()
+    return Config.get_basic_model() if MODERN_OPENAI else Config.get_fallback_model()
 
 
-def call_chat_completion(messages: List[Dict], model: str, max_tokens: int = MAX_TOKENS, temperature: float = TEMPERATURE, json_mode: bool = False):
+def call_chat_completion(
+    messages: List[Dict],
+    model: str,
+    max_tokens: int = MAX_TOKENS,
+    temperature: float = TEMPERATURE,
+    json_mode: bool = False,
+):
     """Compatibility wrapper for chat completion calls"""
     if MODERN_OPENAI:
         client = get_openai_client()
         if not client:
             return None
-            
-        kwargs = {
-            "model": model,
-            "messages": messages,
-            "max_tokens": max_tokens,
-            "temperature": temperature
-        }
-        
+
+        kwargs = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
+
         if json_mode:
             kwargs["response_format"] = {"type": "json_object"}
-            
+
         return client.chat.completions.create(**kwargs)
     else:
         # Legacy API
         if not get_openai_client():  # This sets the API key
             return None
-            
+
         kwargs = {
             "model": model,
             "messages": messages,
             "max_tokens": max_tokens,
             "temperature": temperature,
             "n": 1,
-            "stop": None
+            "stop": None,
         }
-        
+
         return openai.ChatCompletion.create(**kwargs)
 
 
@@ -87,7 +89,7 @@ def generate_response(prompt: str) -> str:
     """Generate basic dbt model improvement suggestions with structured output"""
     if not get_openai_client():
         return ""
-    
+
     system_prompt = """You are a dbt expert helping new data engineers improve their dbt models. 
     
     RULES TO FOLLOW:
@@ -121,55 +123,52 @@ def generate_response(prompt: str) -> str:
         "overall_assessment": "brief overall assessment",
         "has_recommendations": true/false
     }"""
-    
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt}
-    ]
-    
+
+    messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
+
     try:
         response = call_chat_completion(
             messages=messages,
             model=get_model_name(advanced=False),
-            json_mode=MODERN_OPENAI  # Only try JSON mode with modern API
+            json_mode=MODERN_OPENAI,  # Only try JSON mode with modern API
         )
-        
+
         if not response:
             return ""
-        
+
         if MODERN_OPENAI:
             response_text = response.choices[0].message.content
         else:
             response_text = response.choices[0].message["content"]
-        
+
         # Try to parse as JSON if using modern API
         if MODERN_OPENAI:
             try:
                 json_data = json.loads(response_text)
                 suggestions_obj = DbtModelSuggestions(**json_data)
-                
+
                 # Format as the original string format for backwards compatibility
                 if not suggestions_obj.has_recommendations:
                     return suggestions_obj.overall_assessment or "No recommendations needed - model looks good!"
-                
+
                 result_lines = [f"Suggestions for model `{suggestions_obj.model_name}`:"]
                 result_lines.append("")
-                
+
                 for suggestion in suggestions_obj.suggestions:
                     result_lines.append(f"- {suggestion.suggestion}")
-                
+
                 if suggestions_obj.overall_assessment:
                     result_lines.append("")
                     result_lines.append(suggestions_obj.overall_assessment)
-                    
+
                 return "\n".join(result_lines)
-                
+
             except (json.JSONDecodeError, ValidationError):
                 # Fallback to raw response if JSON parsing fails
                 pass
-        
+
         return response_text.strip()
-            
+
     except Exception as e:
         print(f"Error generating suggestions: {e}")
         return ""
@@ -179,7 +178,7 @@ def generate_response_advanced(prompt: str) -> str:
     """Generate advanced dbt model improvement suggestions with structured output"""
     if not get_openai_client():
         return ""
-    
+
     system_prompt = """You are a senior dbt consultant providing advanced optimization suggestions for experienced data engineers.
     
     RULES TO FOLLOW:
@@ -219,55 +218,55 @@ def generate_response_advanced(prompt: str) -> str:
         "overall_assessment": "brief advanced assessment",
         "has_recommendations": true/false
     }"""
-    
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt}
-    ]
-    
+
+    messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
+
     try:
         response = call_chat_completion(
             messages=messages,
             model=get_model_name(advanced=True),
-            json_mode=MODERN_OPENAI  # Only try JSON mode with modern API
+            json_mode=MODERN_OPENAI,  # Only try JSON mode with modern API
         )
-        
+
         if not response:
             return ""
-        
+
         if MODERN_OPENAI:
             response_text = response.choices[0].message.content
         else:
             response_text = response.choices[0].message["content"]
-        
+
         # Try to parse as JSON if using modern API
         if MODERN_OPENAI:
             try:
                 json_data = json.loads(response_text)
                 suggestions_obj = DbtModelSuggestions(**json_data)
-                
+
                 # Format as the original string format for backwards compatibility
                 if not suggestions_obj.has_recommendations:
-                    return suggestions_obj.overall_assessment or "No advanced recommendations needed - model is well optimized!"
-                
+                    return (
+                        suggestions_obj.overall_assessment
+                        or "No advanced recommendations needed - model is well optimized!"
+                    )
+
                 result_lines = [f"Suggestions for model `{suggestions_obj.model_name}`:"]
                 result_lines.append("")
-                
+
                 for suggestion in suggestions_obj.suggestions:
                     result_lines.append(f"- {suggestion.suggestion}")
-                
+
                 if suggestions_obj.overall_assessment:
                     result_lines.append("")
                     result_lines.append(suggestions_obj.overall_assessment)
-                    
+
                 return "\n".join(result_lines)
-                
+
             except (json.JSONDecodeError, ValidationError):
                 # Fallback to raw response if JSON parsing fails
                 pass
-        
+
         return response_text.strip()
-            
+
     except Exception as e:
         print(f"Error generating advanced suggestions: {e}")
         return ""
@@ -275,21 +274,21 @@ def generate_response_advanced(prompt: str) -> str:
 
 def generate_dalle_image(prompt: str, image_size: str = "1024x1024") -> bytes:
     """Generate DALL-E image with improved prompting"""
-    
+
     final_prompt = f"""Create a clean, professional diagram showing connected nodes representing a data lineage graph. 
     The diagram should show: {prompt}
     
     Style: Technical diagram with clear node connections, suitable for data engineering documentation.
     Use circles or boxes for nodes, arrows for connections, and include labels where appropriate."""
-    
+
     print(f"Generating AI image using DALL-E with prompt: {final_prompt[:100]}...")
-    
+
     try:
         if MODERN_OPENAI:
             client = get_openai_client()
             if not client:
                 raise ValueError("OpenAI API key not available")
-            
+
             try:
                 response = client.images.generate(
                     model="dall-e-3",
@@ -298,11 +297,11 @@ def generate_dalle_image(prompt: str, image_size: str = "1024x1024") -> bytes:
                     quality="standard",
                     n=1,
                 )
-                
+
                 image_url = response.data[0].url
                 image_binary = requests.get(image_url).content
                 return image_binary
-                
+
             except Exception:
                 # Try with DALL-E 2 as fallback
                 response = client.images.generate(
@@ -311,7 +310,7 @@ def generate_dalle_image(prompt: str, image_size: str = "1024x1024") -> bytes:
                     size=image_size,
                     n=1,
                 )
-                
+
                 image_url = response.data[0].url
                 image_binary = requests.get(image_url).content
                 return image_binary
@@ -319,7 +318,7 @@ def generate_dalle_image(prompt: str, image_size: str = "1024x1024") -> bytes:
             # Legacy API
             if not get_openai_client():  # This sets the API key
                 raise ValueError("OpenAI API key not available")
-                
+
             response = openai.Image.create(
                 prompt=final_prompt[:1000],  # Keep it shorter for compatibility
                 n=1,
@@ -329,7 +328,7 @@ def generate_dalle_image(prompt: str, image_size: str = "1024x1024") -> bytes:
             image_url = response.data[0].url.strip()
             image_binary = requests.get(image_url).content
             return image_binary
-            
+
     except Exception as e:
         print(f"Error generating image: {e}")
         raise
@@ -339,7 +338,7 @@ def generate_models(prompt: str, sources_yml: str) -> List[str]:
     """Generate dbt models based on prompt and sources with improved structure"""
     if not get_openai_client():
         return []
-    
+
     system_prompt = """You are a dbt expert that creates well-structured dbt models based on user requirements.
     
     INSTRUCTIONS:
@@ -373,7 +372,7 @@ def generate_models(prompt: str, sources_yml: str) -> List[str]:
     FROM {{ source('raw', 'orders') }}
     GROUP BY customer_id
     ==="""
-    
+
     prompt_with_sources = f"""USER REQUEST:
 {prompt}
 
@@ -381,37 +380,31 @@ AVAILABLE SOURCES:
 {sources_yml}
 
 Please create appropriate dbt models based on the request above."""
-    
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt_with_sources}
-    ]
-    
+
+    messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt_with_sources}]
+
     try:
-        response = call_chat_completion(
-            messages=messages,
-            model=get_model_name(advanced=False)
-        )
-        
+        response = call_chat_completion(messages=messages, model=get_model_name(advanced=False))
+
         if not response:
             return []
-        
+
         if MODERN_OPENAI:
             response_text = response.choices[0].message.content
         else:
             response_text = response.choices[0].message["content"]
-        
+
         # Split the models by "===" and filter out empty parts
         models = [model.strip() for model in response_text.split("===") if model.strip()]
-        
+
         # Clean up and format models
         cleaned_models = []
         for model in models:
             if model and ("model_name:" in model or "MODEL:" in model):
                 cleaned_models.append(model)
-        
+
         return cleaned_models if cleaned_models else models
-        
+
     except Exception as e:
         print(f"Error generating models: {e}")
         return []
