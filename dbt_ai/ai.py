@@ -1,132 +1,417 @@
 # flake8: noqa
 
-import openai
+import json
 import os
 import requests
+from typing import List, Optional, Dict, Any
+
+try:
+    # Try modern OpenAI API first
+    from openai import OpenAI
+    MODERN_OPENAI = True
+    OpenAIClient = OpenAI
+except ImportError:
+    # Fallback to legacy API
+    import openai
+    MODERN_OPENAI = False
+    OpenAIClient = None
+
+from pydantic import ValidationError
+
+from .models import DbtModelSuggestions, DbtSuggestion, DbtModelsResponse, DbtModelDefinition
 
 
-def generate_response(prompt) -> list:
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
+# Configuration
+DEFAULT_MODEL = "gpt-4o-mini"  # Cost effective but high quality
+FALLBACK_MODEL = "gpt-3.5-turbo"  # Fallback for compatibility
+MAX_TOKENS = 4000
+TEMPERATURE = 0.1
+
+
+def get_openai_client() -> Optional[Any]:
+    """Get OpenAI client if API key is available"""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return None
+    
+    if MODERN_OPENAI:
+        return OpenAI(api_key=api_key)
+    else:
+        openai.api_key = api_key
+        return None  # Use global openai module for legacy API
+
+
+def get_model_name(advanced: bool = False) -> str:
+    """Get appropriate model name based on task complexity"""
+    if advanced:
+        return "gpt-4o" if MODERN_OPENAI else "gpt-3.5-turbo"
+    return DEFAULT_MODEL if MODERN_OPENAI else "gpt-3.5-turbo"
+
+
+def call_chat_completion(messages: List[Dict], model: str, max_tokens: int = MAX_TOKENS, temperature: float = TEMPERATURE, json_mode: bool = False):
+    """Compatibility wrapper for chat completion calls"""
+    if MODERN_OPENAI:
+        client = get_openai_client()
+        if not client:
+            return None
+            
+        kwargs = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature
+        }
+        
+        if json_mode:
+            kwargs["response_format"] = {"type": "json_object"}
+            
+        return client.chat.completions.create(**kwargs)
+    else:
+        # Legacy API
+        if not get_openai_client():  # This sets the API key
+            return None
+            
+        kwargs = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "n": 1,
+            "stop": None
+        }
+        
+        return openai.ChatCompletion.create(**kwargs)
+
+
+def generate_response(prompt: str) -> str:
+    """Generate basic dbt model improvement suggestions with structured output"""
+    if not get_openai_client():
+        return ""
+    
+    system_prompt = """You are a dbt expert helping new data engineers improve their dbt models. 
+    
+    RULES TO FOLLOW:
+    - Focus on basic, foundational improvements suitable for beginners
+    - Provide specific, actionable suggestions
+    - Do NOT suggest adding comments to models
+    - Do NOT suggest YAML metadata (handled separately)
+    - Do NOT suggest LIMIT for small datasets (<1000 records)
+    - Do NOT suggest JOINs just for filtering small datasets
+    - Avoid conditional suggestions like "If table is big, then..."
+    - Maximum 4 suggestions
+    - If no improvements needed, say so and compliment good practices
+    
+    FOCUS AREAS:
+    - Using ref() instead of hardcoded table names
+    - Proper SQL syntax and formatting
+    - Basic dbt best practices
+    - Code structure and readability
+    - Appropriate use of CTEs
+    
+    Respond with structured JSON in this format:
+    {
+        "model_name": "extracted_model_name",
+        "suggestions": [
             {
-                "role": "user",
-                "content": """You are a helpful assistant that suggests only very basic improvements to dbt models based on the model content provided to you. Apply the rules outlined below. 
-                I will provide further questions and the contents of the dbt model in a following message. Do not deviate from the rules listed below \
-                Assume you are making suggestions to a very new data engineer who is new to dbt and maybe even SQL.
-                Your suggestions should help ensure this new engineer is most effectively using dbt
-                More rules: \
-                - Do not provide suggestions regarding capturing metadata in a yml file, because this information \
-                  is being provided as part of a separate check in this application \
-                - Do NOT suggest writing comments in models \
-                - Do NOT suggest using LIMIT if the model is already selecting a small number of records (e.g. under 1000) \
-                - Do NOT suggest using JOIN to filter records if the model is already selecting a small number of records (e.g. under 1000) \
-                - Do NOT suggest to consider adding a comment at the top of the model to explain the purpose of the query and any relevant context
-                - Avoid providing too many conditional suggestions such as "If this table is big, then do this"
-                - If you find or say that there are no  recommendations to provide, then do not proceed any further to provide anything else. Maybe add a compliment if it's nicely written!
-                - Limit to 4 suggestions maximum \
-                    \
-            Formatting: 
-            Suggestions for model `model_name`: \n\n
-                - suggestion 1 \n
-                - suggestion 2 \n
-                - suggestion 3 \n
-                """,
-            },
-            {"role": "user", "content": prompt},
+                "suggestion": "specific improvement text",
+                "priority": "high|medium|low",
+                "category": "syntax|performance|best_practice|structure"
+            }
         ],
-        max_tokens=1024,
-        n=1,
-        stop=None,
-        temperature=0.1,
-    )
-    return response.choices[0].message["content"].strip()
-
-
-def generate_response_advanced(prompt) -> list:
-    example_advanced_recommendations = """
-        - Consider using a window function to calculate rolling averages or cumulative sums for a large dataset. This can improve query performance by reducing the need to perform multiple passes over the same data.
-        - If a model contains a large number of columns, consider splitting it into multiple models to improve query performance and maintainability.
-        - Consider using a common table expression (CTE) to break down a complex query into smaller, more manageable pieces. This can improve query readability and maintainability.
-        - If a model contains a large amount of data, consider using a partitioning key to improve query performance. This can help distribute the data across multiple nodes and reduce the amount of data that needs to be scanned.
-        - Consider using a temporary table to store intermediate results for a complex query. This can help simplify the query logic and improve query performance by reducing the need to repeat certain calculations.
-        - If a model contains a large number of joins, consider using a star schema or a snowflake schema to simplify the data model and improve query performance.
-    """
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {
-                "role": "user",
-                "content": f"""You are a helpful assistant that suggests only very advanced improvements to dbt models based on the model content provided to you. Apply the rules outlined below. 
-                I will provide further questions and the contents of the dbt model in a following message. Do not deviate from the rules listed below \
-                Assume you are making suggestions to a highly skilled data engineer with strong knowledge of dbt and SQL.  \
-                More rules: \
-                - Avoid providing too many conditional suggestions such as "If this table is big, then do this"
-                - If you find or say that there are no advanced recommendations to provide, then do not proceed any further to provide non-advanced recommendations. Maybe add a compliment if it's nicely written!
-                - Limit to 4 suggestions maximum 
-                - Here are a number of example recommendations that can be classified as advanced. Your recommendations should classify equally as advanced as these recommendations (but do not need to be the same):
-                    {example_advanced_recommendations}
+        "overall_assessment": "brief overall assessment",
+        "has_recommendations": true/false
+    }"""
+    
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt}
+    ]
+    
+    try:
+        response = call_chat_completion(
+            messages=messages,
+            model=get_model_name(advanced=False),
+            json_mode=MODERN_OPENAI  # Only try JSON mode with modern API
+        )
+        
+        if not response:
+            return ""
+        
+        if MODERN_OPENAI:
+            response_text = response.choices[0].message.content
+        else:
+            response_text = response.choices[0].message["content"]
+        
+        # Try to parse as JSON if using modern API
+        if MODERN_OPENAI:
+            try:
+                json_data = json.loads(response_text)
+                suggestions_obj = DbtModelSuggestions(**json_data)
+                
+                # Format as the original string format for backwards compatibility
+                if not suggestions_obj.has_recommendations:
+                    return suggestions_obj.overall_assessment or "No recommendations needed - model looks good!"
+                
+                result_lines = [f"Suggestions for model `{suggestions_obj.model_name}`:"]
+                result_lines.append("")
+                
+                for suggestion in suggestions_obj.suggestions:
+                    result_lines.append(f"- {suggestion.suggestion}")
+                
+                if suggestions_obj.overall_assessment:
+                    result_lines.append("")
+                    result_lines.append(suggestions_obj.overall_assessment)
                     
-            Formatting: 
-            Suggestions for model `model_name`: \n\n
-                - suggestion 1 \n
-                - suggestion 2 \n
-                - suggestion 3 \n
-                """,
-            },
-            {"role": "user", "content": prompt},
-        ],
-        max_tokens=1024,
-        n=1,
-        stop=None,
-        temperature=0,
-    )
-    return response.choices[0].message["content"].strip()
+                return "\n".join(result_lines)
+                
+            except (json.JSONDecodeError, ValidationError):
+                # Fallback to raw response if JSON parsing fails
+                pass
+        
+        return response_text.strip()
+            
+    except Exception as e:
+        print(f"Error generating suggestions: {e}")
+        return ""
 
 
-def generate_dalle_image(prompt: str, image_size: str = "1024x1024"):
-    final_prompt = f"Draw a set of connected balls representing the nodes and edges of the following graph description: \
-                    {prompt} \
-                    "
-    print(f"Generating AI image using DALL-E with the following prompt: {final_prompt}")
-    response = openai.Image.create(
-        prompt=prompt,
-        n=1,
-        size=image_size,
-    )
-
-    image_url = response.data[0].url.strip()
-    image_binary = requests.get(image_url).content
-
-    return image_binary
-
-
-def generate_models(prompt: str, sources_yml: str) -> list[str]:
-    # Combine prompt and sources.yml content
-    prompt_with_sources = f"{prompt}\n\nSources YAML:\n\n{sources_yml}\n\n"
-    output_dir = "models"
-    # Generate response using OpenAI API
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
+def generate_response_advanced(prompt: str) -> str:
+    """Generate advanced dbt model improvement suggestions with structured output"""
+    if not get_openai_client():
+        return ""
+    
+    system_prompt = """You are a senior dbt consultant providing advanced optimization suggestions for experienced data engineers.
+    
+    RULES TO FOLLOW:
+    - Provide only advanced, sophisticated recommendations
+    - Focus on performance optimization, complex dbt features, and architectural improvements
+    - Do NOT provide basic suggestions (those are handled separately)
+    - Avoid conditional suggestions like "If table is big, then..."
+    - Maximum 4 suggestions
+    - If no advanced improvements are needed, state that clearly
+    
+    ADVANCED FOCUS AREAS:
+    - Performance optimization techniques (incremental models, partitioning, clustering)
+    - Advanced dbt features (macros, tests, snapshots, hooks)
+    - Complex SQL patterns and optimization
+    - Data warehouse specific optimizations
+    - Architecture and data modeling patterns
+    - Advanced testing strategies
+    
+    EXAMPLE ADVANCED SUGGESTIONS:
+    - Implement incremental processing with merge strategies for large datasets
+    - Add clustering keys for better query performance in Snowflake
+    - Use window functions for complex analytics rather than self-joins
+    - Implement data quality tests at multiple grain levels
+    - Consider splitting into multiple models for better modularity and testing
+    - Use dbt macros to eliminate repetitive code patterns
+    
+    Respond with structured JSON in this format:
+    {
+        "model_name": "extracted_model_name",
+        "suggestions": [
             {
-                "role": "system",
-                "content": "You are a helpful assistant that will write dbt models based on the provided prompt. The prompt includes useful information such as the contents of the sources.yml file. \
-                If the logic needs to be split into multiple dbt models, please delimit the contents of each model with '===', which will be used to split the data to write into separate sql files later. \
-                Do not put any explanations. Each model content should be divided with a === so that splitting by === would divide the models. The first line in the split model should have a 'model_name: modelname' with the actual model name. \
-                The following lines after the model name should be the sql content with NO codeblock syntax. The last line of that model file should be the line prior to the next === \
-                The user will likely provide enough information such as any join requirements, or aggregation requirements so use this information to correctly structure your dbt model queries. \
-                    In the absence of any specific join or aggregation requirements - feel free to suggest some code samples (nothing large) that are commented out, that might be useful to a new dbt user",
-            },
-            {"role": "user", "content": prompt_with_sources},
+                "suggestion": "specific advanced improvement text",
+                "priority": "high|medium|low",
+                "category": "performance|architecture|testing|optimization"
+            }
         ],
-        max_tokens=400,
-        n=1,
-        stop=None,
-        temperature=0,
-    )
+        "overall_assessment": "brief advanced assessment",
+        "has_recommendations": true/false
+    }"""
+    
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt}
+    ]
+    
+    try:
+        response = call_chat_completion(
+            messages=messages,
+            model=get_model_name(advanced=True),
+            json_mode=MODERN_OPENAI  # Only try JSON mode with modern API
+        )
+        
+        if not response:
+            return ""
+        
+        if MODERN_OPENAI:
+            response_text = response.choices[0].message.content
+        else:
+            response_text = response.choices[0].message["content"]
+        
+        # Try to parse as JSON if using modern API
+        if MODERN_OPENAI:
+            try:
+                json_data = json.loads(response_text)
+                suggestions_obj = DbtModelSuggestions(**json_data)
+                
+                # Format as the original string format for backwards compatibility
+                if not suggestions_obj.has_recommendations:
+                    return suggestions_obj.overall_assessment or "No advanced recommendations needed - model is well optimized!"
+                
+                result_lines = [f"Suggestions for model `{suggestions_obj.model_name}`:"]
+                result_lines.append("")
+                
+                for suggestion in suggestions_obj.suggestions:
+                    result_lines.append(f"- {suggestion.suggestion}")
+                
+                if suggestions_obj.overall_assessment:
+                    result_lines.append("")
+                    result_lines.append(suggestions_obj.overall_assessment)
+                    
+                return "\n".join(result_lines)
+                
+            except (json.JSONDecodeError, ValidationError):
+                # Fallback to raw response if JSON parsing fails
+                pass
+        
+        return response_text.strip()
+            
+    except Exception as e:
+        print(f"Error generating advanced suggestions: {e}")
+        return ""
 
-    # Extract the models from the response
-    models = response.choices[0].message["content"].split("MODEL:")
-    # print(models)
-    return models
+
+def generate_dalle_image(prompt: str, image_size: str = "1024x1024") -> bytes:
+    """Generate DALL-E image with improved prompting"""
+    
+    final_prompt = f"""Create a clean, professional diagram showing connected nodes representing a data lineage graph. 
+    The diagram should show: {prompt}
+    
+    Style: Technical diagram with clear node connections, suitable for data engineering documentation.
+    Use circles or boxes for nodes, arrows for connections, and include labels where appropriate."""
+    
+    print(f"Generating AI image using DALL-E with prompt: {final_prompt[:100]}...")
+    
+    try:
+        if MODERN_OPENAI:
+            client = get_openai_client()
+            if not client:
+                raise ValueError("OpenAI API key not available")
+            
+            try:
+                response = client.images.generate(
+                    model="dall-e-3",
+                    prompt=final_prompt,
+                    size=image_size,
+                    quality="standard",
+                    n=1,
+                )
+                
+                image_url = response.data[0].url
+                image_binary = requests.get(image_url).content
+                return image_binary
+                
+            except Exception:
+                # Try with DALL-E 2 as fallback
+                response = client.images.generate(
+                    model="dall-e-2",
+                    prompt=final_prompt[:1000],  # DALL-E 2 has shorter prompt limit
+                    size=image_size,
+                    n=1,
+                )
+                
+                image_url = response.data[0].url
+                image_binary = requests.get(image_url).content
+                return image_binary
+        else:
+            # Legacy API
+            if not get_openai_client():  # This sets the API key
+                raise ValueError("OpenAI API key not available")
+                
+            response = openai.Image.create(
+                prompt=final_prompt[:1000],  # Keep it shorter for compatibility
+                n=1,
+                size=image_size,
+            )
+
+            image_url = response.data[0].url.strip()
+            image_binary = requests.get(image_url).content
+            return image_binary
+            
+    except Exception as e:
+        print(f"Error generating image: {e}")
+        raise
+
+
+def generate_models(prompt: str, sources_yml: str) -> List[str]:
+    """Generate dbt models based on prompt and sources with improved structure"""
+    if not get_openai_client():
+        return []
+    
+    system_prompt = """You are a dbt expert that creates well-structured dbt models based on user requirements.
+    
+    INSTRUCTIONS:
+    1. Create dbt models that follow best practices
+    2. Use proper dbt syntax including ref() and source() functions
+    3. Split complex logic into multiple models when appropriate
+    4. Include helpful commented examples for beginners when logic is simple
+    5. Use the provided sources.yml information to understand available data
+    
+    OUTPUT FORMAT:
+    - Each model should be separated by "==="
+    - First line after === should be "model_name: actual_model_name" 
+    - Following lines should contain the SQL content (no code blocks)
+    - End with === before the next model
+    
+    EXAMPLE OUTPUT:
+    ===
+    model_name: customers
+    SELECT 
+        customer_id,
+        customer_name,
+        email
+    FROM {{ source('raw', 'customers') }}
+    WHERE is_active = true
+    ===
+    model_name: orders_summary  
+    SELECT 
+        customer_id,
+        COUNT(*) as order_count,
+        SUM(order_total) as total_spent
+    FROM {{ source('raw', 'orders') }}
+    GROUP BY customer_id
+    ==="""
+    
+    prompt_with_sources = f"""USER REQUEST:
+{prompt}
+
+AVAILABLE SOURCES:
+{sources_yml}
+
+Please create appropriate dbt models based on the request above."""
+    
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt_with_sources}
+    ]
+    
+    try:
+        response = call_chat_completion(
+            messages=messages,
+            model=get_model_name(advanced=False)
+        )
+        
+        if not response:
+            return []
+        
+        if MODERN_OPENAI:
+            response_text = response.choices[0].message.content
+        else:
+            response_text = response.choices[0].message["content"]
+        
+        # Split the models by "===" and filter out empty parts
+        models = [model.strip() for model in response_text.split("===") if model.strip()]
+        
+        # Clean up and format models
+        cleaned_models = []
+        for model in models:
+            if model and ("model_name:" in model or "MODEL:" in model):
+                cleaned_models.append(model)
+        
+        return cleaned_models if cleaned_models else models
+        
+    except Exception as e:
+        print(f"Error generating models: {e}")
+        return []

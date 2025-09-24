@@ -43,7 +43,7 @@ class DbtModelProcessor:
 
         return refs
 
-    def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> list:
+    def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> str:
         with open(file_path, "r") as f:
             content = f.read()
         prompt = f"""Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices \
@@ -52,7 +52,7 @@ class DbtModelProcessor:
         response = generate_response(prompt)
         return response
 
-    def suggest_dbt_model_improvements_advanced(self, file_path: str, model_name: str) -> list:
+    def suggest_dbt_model_improvements_advanced(self, file_path: str, model_name: str) -> str:
         with open(file_path, "r") as f:
             content = f.read()
         prompt = f"""Given the following dbt model {model_name}:\n\n{content}\n\n \
