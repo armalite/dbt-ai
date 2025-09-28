@@ -66,19 +66,24 @@ class DbtModelProcessor:
         response = generate_response_advanced(prompt)
         return response
 
-    def process_model(self, model_file: str, advanced: bool = False):
+    def process_model(self, model_file: str, advanced: bool = False, metadata_only: bool = False):
         model_name = os.path.basename(model_file).replace(".sql", "")
 
         has_metadata = self.model_has_metadata(model_name)
-        if self.api_key_available:
-            if advanced:
-                raw_suggestion = self.suggest_dbt_model_improvements_advanced(model_file, model_name)
-            else:
-                raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name)
-        else:
-            raw_suggestion = ""
 
-        refs = self.get_model_refs(model_file)
+        if metadata_only:
+            # Skip AI suggestions and refs when only checking metadata
+            raw_suggestion = ""
+            refs = []
+        else:
+            if self.api_key_available:
+                if advanced:
+                    raw_suggestion = self.suggest_dbt_model_improvements_advanced(model_file, model_name)
+                else:
+                    raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name)
+            else:
+                raw_suggestion = ""
+            refs = self.get_model_refs(model_file)
 
         return {
             "model_name": model_name,
@@ -87,9 +92,9 @@ class DbtModelProcessor:
             "refs": refs,
         }
 
-    def process_dbt_models(self, advanced: bool = False):
+    def process_dbt_models(self, advanced: bool = False, metadata_only: bool = False):
         model_files = glob.glob(os.path.join(self.dbt_project_path, "models/**/*.sql"), recursive=True)
-        models = [self.process_model(model_file, advanced) for model_file in model_files]
+        models = [self.process_model(model_file, advanced, metadata_only) for model_file in model_files]
         missing_metadata = []
 
         # Check for models without metadata
