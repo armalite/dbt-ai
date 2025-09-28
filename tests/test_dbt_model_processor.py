@@ -90,3 +90,30 @@ def test_create_dbt_models(dbt_project, mock_generate_models):
     processor.create_dbt_models(prompt)
 
     mock_generate_models.assert_called_once_with(prompt, mock.ANY)
+
+
+def test_process_model_metadata_only(dbt_project):
+    """Test process_model with metadata_only=True skips AI suggestions"""
+    processor = DbtModelProcessor(dbt_project)
+    model_file = os.path.join(dbt_project, "models", "model1.sql")
+
+    result = processor.process_model(model_file, metadata_only=True)
+
+    assert result["model_name"] == "model1"
+    assert result["metadata_exists"]
+    assert result["suggestions"] == ""  # Should be empty when metadata_only=True
+    assert result["refs"] == []  # Should be empty when metadata_only=True
+
+
+def test_process_dbt_models_metadata_only(dbt_project):
+    """Test process_dbt_models with metadata_only=True"""
+    processor = DbtModelProcessor(dbt_project)
+
+    models, missing_metadata = processor.process_dbt_models(metadata_only=True)
+
+    assert len(models) == 1
+    model = models[0]
+    assert model["model_name"] == "model1"
+    assert model["metadata_exists"]
+    assert model["suggestions"] == ""  # Should be empty when metadata_only=True
+    assert model["refs"] == []  # Should be empty when metadata_only=True

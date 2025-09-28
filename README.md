@@ -2,23 +2,28 @@
 
 An application that allows AI powered [DBT](https://www.getdbt.com/) development and recommendations for your [DBT](https://www.getdbt.com/) models.
 
-## 🚀 What's New in v0.3.0
+## 🚀 What's New in v0.4.0
 
+- **Agent-First Design**: JSON output is now the default format for seamless integration with AI coding agents
+- **Structured Output**: Machine-parseable JSON responses that work with any agent or automation tool
+- **Fast Metadata Checks**: New `--metadata-only` flag for quick metadata coverage analysis without AI processing
 - **Modern OpenAI API**: Upgraded to the latest OpenAI API (v1.x) with support for GPT-4o and GPT-4o-mini
 - **Enhanced Prompts**: Completely rewritten prompts with better structure and clearer guidelines
-- **Structured Responses**: AI responses now use structured JSON format for more reliable parsing
 - **Smart Model Selection**: Automatically uses GPT-4o for advanced suggestions and GPT-4o-mini for basic ones
 - **Better Error Handling**: Improved error handling and fallback mechanisms
 - **Configuration Options**: Environment variables for customizing AI models and settings
 - **Maintained Compatibility**: All existing CLI commands work exactly the same
 
 ## Features
- - Scans all dbt models and generates a report containing recommendations for each model
-   - By default only basic recommendations are provided
-   - Ability to request for more advanced recommendations
- - Create DBT models by using AI prompts
- - Lists dbt models that are missing associated metadata e.g. in a `schema.yml` file or equivalent
- - DBT model lineage description is listed in the terminal (more features coming soon)
+ - **Agent-Ready Output**: Structured JSON output by default for seamless automation and agent integration
+ - **AI-Powered Analysis**: Scans all dbt models and generates recommendations for each model
+   - Basic recommendations for quick improvements (default: GPT-4o-mini)
+   - Advanced recommendations for complex optimizations (GPT-4o)
+ - **Fast Metadata Checking**: Instantly verify which models are missing documentation
+ - **Model Creation**: Generate new dbt models from natural language prompts
+ - **Lineage Analysis**: Understand model dependencies and data flow
+ - **Multi-Database Support**: Works with Snowflake, PostgreSQL, Redshift, and BigQuery
+ - **Human-Readable Reports**: Optional HTML reports for visual analysis
 
 ## Installation
 First time installation:
@@ -85,43 +90,71 @@ export DBT_AI_TEMPERATURE="0.1"
 - **For best quality**: Use `gpt-4o-mini` for basic and `gpt-4o` for advanced (default)
 - **For organizations**: Consider `gpt-4` models for production use
 
-### Generate Recommendations (AI)
-This feature will generate the recommendation report and also inform you about any models missing metadata
+### Quick Start
 
-#### Basic Usage
-The default setting is to provide basic recommendations
-  1. Run the application passing in the path to your dbt project:
+#### Basic Analysis (JSON Output)
+Get structured analysis perfect for agents and automation:
 ```bash
 dbt-ai -f path/to/dbt/project
 ```
 
-For example, if you are already inside your dbt project directory, you can run:
+Example with current directory:
 ```bash
 dbt-ai -f .
 ```
 
-#### Available Settings
+This outputs machine-parseable JSON with model analysis, suggestions, and metadata coverage.
 
-   - *Database:* specify which database system your dbt models are written for. Default: `snowflake`
-      - `-d` / `--database`
-      - Available values: `snowflake`, `postgres`, `redshift`, `bigquery`
-      - Usage example: 
-      ```bash
-      dbt ai -f . -d snowflake
-      ```
-   - *Advanced Recommendations:* Request for advanced recommendations. Default: No setting defaults to basic recommendations
-      - `-a` / `--advanced-rec`
-      - Available values: Only flag required
-      - Usage example: 
-      ```bash
-      dbt ai -f . -a 
-      ```
-      Or
-      ```bash
-      dbt ai -f . --advanced-req
-      ```
+#### Fast Metadata Check
+Quick metadata coverage check without AI processing:
+```bash
+dbt-ai -f . --metadata-only
+```
 
-Please allow some time for the AI model to process your dbt models. The application will process all dbt model files in your project and generate an HTML report with suggestions for each model. The report will be saved as dbt_model_suggestions.html within the dbt project directory. Upon generation of the report, it will be opened in a new browser tab.
+#### Human-Readable Reports
+Generate visual HTML reports for manual review:
+```bash
+dbt-ai -f . --output text
+```
+
+### Advanced Usage
+
+#### Output Formats
+```bash
+# JSON output (default) - perfect for agents
+dbt-ai -f . --output json
+
+# Text output - generates HTML report for humans
+dbt-ai -f . --output text
+```
+
+#### Database Configuration
+Specify your database type for optimized suggestions:
+```bash
+dbt-ai -f . -d snowflake    # Default
+dbt-ai -f . -d postgres     # PostgreSQL
+dbt-ai -f . -d redshift     # Amazon Redshift
+dbt-ai -f . -d bigquery     # Google BigQuery
+```
+
+#### Advanced AI Recommendations
+Request more sophisticated optimization suggestions:
+```bash
+dbt-ai -f . -a              # Short form
+dbt-ai -f . --advanced-rec  # Long form
+```
+
+#### Combined Examples
+```bash
+# Advanced PostgreSQL analysis with JSON output
+dbt-ai -f . -d postgres -a
+
+# Quick metadata check only
+dbt-ai -f . --metadata-only
+
+# Full analysis with HTML report
+dbt-ai -f . --output text -a
+```
 
 ### Create DBT Models from prompt (AI)
 This feature lets you specify a prompt, which creates AI generated DBT model files in the `models/` directory of the specified dbt project. The AI model has access to your `sources.yml` file, if you wish to refer to any sources in your prompt. Being specific will provide better results.
@@ -135,13 +168,35 @@ Here is an example:
 dbt-ai -f . --create-models 'Write me a model that uses all the sources available in sources.yml and joins them together using the id column'
 ```
 
-## Generated Report
+## Output Formats
 
-The tool generates a comprehensive HTML report with AI-powered suggestions for each dbt model.
+### JSON Output (Default)
+Perfect for AI agents, automation tools, and programmatic analysis:
+
+```json
+{
+  "operation": "full_analysis",
+  "project_path": "./sample-dbt-project",
+  "total_models": 3,
+  "models": [
+    {
+      "name": "customer_summary",
+      "has_metadata": true,
+      "suggestions": "Consider adding data freshness tests...",
+      "dependencies": ["raw_customers", "raw_orders"]
+    }
+  ],
+  "metadata_coverage_percent": 66.7,
+  "lineage_description": "customer_summary depends on raw_customers, raw_orders..."
+}
+```
+
+### HTML Report
+Visual reports for human analysis when using `--output text`:
 
 ### 🌐 [**View Live Demo Report**](https://armalite.github.io/dbt-ai/sample-report.html)
 
-The report includes:
+The HTML report includes:
 - 🤖 **AI-powered improvement suggestions** for each dbt model
 - 📋 **Metadata coverage analysis** showing which models need documentation
 - 🎨 **Professional styling** with responsive design
@@ -149,9 +204,38 @@ The report includes:
 
 *The demo above shows the actual output generated from the sample dbt project included in this repository.*
 
+## Agent Integration
+
+dbt-ai is designed to work seamlessly with AI coding agents like Claude Code, Cursor, and GitHub Copilot. The JSON output format allows agents to:
+
+- **Analyze dbt projects** programmatically without human intervention
+- **Identify optimization opportunities** across multiple models
+- **Check metadata coverage** for documentation completeness
+- **Understand model lineage** for impact analysis
+- **Generate improvement suggestions** based on current best practices
+
+### Example Agent Workflow
+```bash
+# Agent runs analysis
+dbt-ai -f ./dbt-project --output json > analysis.json
+
+# Agent parses results to identify issues
+cat analysis.json | jq '.models[] | select(.has_metadata == false) | .name'
+
+# Agent can then take corrective actions based on structured data
+```
+
 ## Changelog
 
-### v0.3.0 (Latest)
+### v0.4.0 (Latest)
+- **Agent-first design**: JSON output is now the default format
+- **Fast metadata checks**: New `--metadata-only` flag for quick coverage analysis
+- **Structured output**: Machine-parseable JSON for seamless automation
+- **Agent integration**: Designed for seamless use with AI coding agents
+- **Bug fixes**: Resolved directory handling issues in YAML file discovery
+- **Enhanced error handling**: Better safety checks for file processing
+
+### v0.3.0
 - **Major upgrade**: Modernized OpenAI API integration (v1.x)
 - **Enhanced AI prompts**: Completely rewritten prompts with better structure and context
 - **Smart model selection**: GPT-4o for advanced suggestions, GPT-4o-mini for basic ones
