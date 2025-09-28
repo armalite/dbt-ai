@@ -77,7 +77,33 @@ def main() -> None:
         default="json",
         help="Output format: json (default) or text for human-readable output",
     )
+    parser.add_argument(
+        "--mcp-server",
+        action="store_true",
+        help="Start MCP server mode for AI agent integration",
+    )
+    parser.add_argument(
+        "--mcp-port",
+        type=int,
+        default=8080,
+        help="Port for MCP server (default: 8080)",
+    )
     args = parser.parse_args()
+
+    # Handle MCP server mode
+    if args.mcp_server:
+        if not args.dbt_project_path:
+            print("❌ Error: --dbt-project-path is required for MCP server mode")
+            return
+
+        try:
+            from dbt_ai.mcp_server import start_mcp_server
+
+            start_mcp_server(args.dbt_project_path, args.database, args.mcp_port)
+        except ImportError:
+            print("❌ Error: FastMCP not installed. Run: pip install fastmcp")
+            return
+        return
 
     if not args.create_models:
         processor = DbtModelProcessor(args.dbt_project_path, args.database)
