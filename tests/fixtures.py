@@ -1,5 +1,6 @@
 # flake8: noqa
 
+import os
 from unittest.mock import patch
 
 import pytest
@@ -37,15 +38,19 @@ def dbt_project(tmp_path):
 
 @pytest.fixture
 def mock_generate_response():
-    with patch.object(DbtModelProcessor, "suggest_dbt_model_improvements", autospec=True) as mock_function:
-        mock_function.return_value = ["Use ref() function instead of hardcoding table names."]
+    with patch.object(DbtModelProcessor, "suggest_dbt_model_improvements", autospec=True) as mock_function, patch.dict(
+        os.environ, {"OPENAI_API_KEY": "test-key"}
+    ):
+        mock_function.return_value = "Use ref() function instead of hardcoding table names."
         yield mock_function
 
 
 @pytest.fixture
 def mock_generate_response_advanced():
-    with patch.object(DbtModelProcessor, "suggest_dbt_model_improvements_advanced") as mock_function:
-        mock_function.return_value = ["Use ref() function instead of hardcoding table names (advanced)."]
+    with patch.object(DbtModelProcessor, "suggest_dbt_model_improvements_advanced") as mock_function, patch.dict(
+        os.environ, {"OPENAI_API_KEY": "test-key"}
+    ):
+        mock_function.return_value = "Use ref() function instead of hardcoding table names (advanced)."
         yield mock_function
 
 

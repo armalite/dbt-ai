@@ -11,6 +11,7 @@ import yaml
 
 from dbt_ai.ai import generate_dalle_image, generate_models, generate_response, generate_response_advanced
 from dbt_ai.helper import find_yaml_files
+from dbt_ai.config import Config
 
 
 class DbtModelProcessor:
@@ -19,7 +20,7 @@ class DbtModelProcessor:
     def __init__(self, dbt_project_path: str, database: str = "snowflake") -> None:
         self.dbt_project_path = dbt_project_path
         self.yaml_files = find_yaml_files(dbt_project_path)
-        self.api_key_available = bool(os.getenv("OPENAI_API_KEY"))
+        self.api_key_available = Config.is_api_available()
         self.sources_yml_content = self.read_sources_yml(dbt_project_path)
         self.database = database
         if not self.api_key_available:
@@ -43,7 +44,7 @@ class DbtModelProcessor:
 
         return refs
 
-    def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> list:
+    def suggest_dbt_model_improvements(self, file_path: str, model_name: str) -> str:
         with open(file_path, "r") as f:
             content = f.read()
         prompt = f"""Given the following dbt model {model_name}:\n\n{content}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices \
@@ -52,7 +53,7 @@ class DbtModelProcessor:
         response = generate_response(prompt)
         return response
 
-    def suggest_dbt_model_improvements_advanced(self, file_path: str, model_name: str) -> list:
+    def suggest_dbt_model_improvements_advanced(self, file_path: str, model_name: str) -> str:
         with open(file_path, "r") as f:
             content = f.read()
         prompt = f"""Given the following dbt model {model_name}:\n\n{content}\n\n \
@@ -65,19 +66,24 @@ class DbtModelProcessor:
         response = generate_response_advanced(prompt)
         return response
 
-    def process_model(self, model_file: str, advanced: bool = False):
+    def process_model(self, model_file: str, advanced: bool = False, metadata_only: bool = False):
         model_name = os.path.basename(model_file).replace(".sql", "")
 
         has_metadata = self.model_has_metadata(model_name)
-        if self.api_key_available:
-            if advanced:
-                raw_suggestion = self.suggest_dbt_model_improvements_advanced(model_file, model_name)
-            else:
-                raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name)
-        else:
-            raw_suggestion = ""
 
-        refs = self.get_model_refs(model_file)
+        if metadata_only:
+            # Skip AI suggestions and refs when only checking metadata
+            raw_suggestion = ""
+            refs = []
+        else:
+            if self.api_key_available:
+                if advanced:
+                    raw_suggestion = self.suggest_dbt_model_improvements_advanced(model_file, model_name)
+                else:
+                    raw_suggestion = self.suggest_dbt_model_improvements(model_file, model_name)
+            else:
+                raw_suggestion = ""
+            refs = self.get_model_refs(model_file)
 
         return {
             "model_name": model_name,
@@ -86,9 +92,9 @@ class DbtModelProcessor:
             "refs": refs,
         }
 
-    def process_dbt_models(self, advanced: bool = False):
+    def process_dbt_models(self, advanced: bool = False, metadata_only: bool = False):
         model_files = glob.glob(os.path.join(self.dbt_project_path, "models/**/*.sql"), recursive=True)
-        models = [self.process_model(model_file, advanced) for model_file in model_files]
+        models = [self.process_model(model_file, advanced, metadata_only) for model_file in model_files]
         missing_metadata = []
 
         # Check for models without metadata

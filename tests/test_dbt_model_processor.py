@@ -13,7 +13,7 @@ def test_suggest_dbt_model_improvements(mock_generate_response, dbt_project):
     suggestions = processor.suggest_dbt_model_improvements(model_file, "model1")
 
     assert len(suggestions) > 0
-    assert suggestions[0] == "Use ref() function instead of hardcoding table names."
+    assert suggestions == "Use ref() function instead of hardcoding table names."
 
 
 def test_process_model(mock_generate_response, mock_generate_response_advanced, dbt_project):
@@ -24,8 +24,8 @@ def test_process_model(mock_generate_response, mock_generate_response_advanced, 
 
     assert result["model_name"] == "model1"
     assert result["metadata_exists"]
-    assert len(result["suggestions"]) == 1
-    assert result["suggestions"][0] == "Use ref() function instead of hardcoding table names."
+    assert len(result["suggestions"]) > 0  # Should be a non-empty string
+    assert result["suggestions"] == "Use ref() function instead of hardcoding table names."
 
 
 def test_process_dbt_models(mock_generate_response, mock_generate_response_advanced, dbt_project):
@@ -38,7 +38,7 @@ def test_process_dbt_models(mock_generate_response, mock_generate_response_advan
     model = models[0]
     assert model["model_name"] == "model1"
     assert model["metadata_exists"]
-    assert model["suggestions"][0] == "Use ref() function instead of hardcoding table names."
+    assert model["suggestions"] == "Use ref() function instead of hardcoding table names."
 
 
 def test_suggest_dbt_model_improvements_advanced(mock_generate_response, mock_generate_response_advanced, dbt_project):
@@ -48,7 +48,7 @@ def test_suggest_dbt_model_improvements_advanced(mock_generate_response, mock_ge
     suggestions = processor.suggest_dbt_model_improvements_advanced(model_file, "model1")
 
     assert len(suggestions) > 0
-    assert suggestions[0] == "Use ref() function instead of hardcoding table names (advanced)."
+    assert suggestions == "Use ref() function instead of hardcoding table names (advanced)."
 
 
 def test_process_model_advanced(mock_generate_response, mock_generate_response_advanced, dbt_project):
@@ -59,7 +59,7 @@ def test_process_model_advanced(mock_generate_response, mock_generate_response_a
 
     assert result["model_name"] == "model1"
     assert result["metadata_exists"]
-    assert result["suggestions"][0] == "Use ref() function instead of hardcoding table names (advanced)."
+    assert result["suggestions"] == "Use ref() function instead of hardcoding table names (advanced)."
 
 
 def test_process_dbt_models_advanced(mock_generate_response, mock_generate_response_advanced, dbt_project):
@@ -72,7 +72,7 @@ def test_process_dbt_models_advanced(mock_generate_response, mock_generate_respo
     model = models[0]
     assert model["model_name"] == "model1"
     assert model["metadata_exists"]
-    assert model["suggestions"][0] == "Use ref() function instead of hardcoding table names (advanced)."
+    assert model["suggestions"] == "Use ref() function instead of hardcoding table names (advanced)."
 
 
 def test_model_has_metadata(dbt_project):
@@ -89,4 +89,4 @@ def test_create_dbt_models(dbt_project, mock_generate_models):
     prompt = "prompt for creating dbt models"
     processor.create_dbt_models(prompt)
 
-    assert mock_generate_models.called_once_with(prompt, mock.ANY)
+    mock_generate_models.assert_called_once_with(prompt, mock.ANY)
