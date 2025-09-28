@@ -13,11 +13,9 @@ def output_json(data: dict) -> None:
 
 def output_text_metadata_only(models: list, missing_metadata: list) -> None:
     """Output metadata-only results in text format"""
-    models_without_metadata = [model["model_name"] for model in models if not model["metadata_exists"]]
-
-    if models_without_metadata:
+    if missing_metadata:
         print("The following models are missing metadata:")
-        for model_name in models_without_metadata:
+        for model_name in missing_metadata:
             print(f"  - {model_name}")
     else:
         print("All models have associated metadata.")
@@ -25,7 +23,9 @@ def output_text_metadata_only(models: list, missing_metadata: list) -> None:
     print(f"\nMetadata check complete. {len(models)} models analyzed.")
 
 
-def output_text_full_analysis(models: list, missing_metadata: list, lineage_description: str, output_path: str, advanced: bool) -> None:
+def output_text_full_analysis(
+    models: list, missing_metadata: list, lineage_description: str, output_path: str, advanced: bool
+) -> None:
     """Output full analysis results in text format"""
     print(f"Lineage description:\n {lineage_description}")
 
@@ -94,7 +94,9 @@ def main() -> None:
                     "total_models": len(models),
                     "missing_metadata": [model["model_name"] for model in models if not model["metadata_exists"]],
                     "models_with_metadata": [model["model_name"] for model in models if model["metadata_exists"]],
-                    "metadata_coverage_percent": round((len(models) - len(missing_metadata)) / len(models) * 100, 1) if models else 0
+                    "metadata_coverage_percent": round((len(models) - len(missing_metadata)) / len(models) * 100, 1)
+                    if models
+                    else 0,
                 }
                 output_json(result)
             else:
@@ -119,13 +121,15 @@ def main() -> None:
                             "name": model["model_name"],
                             "has_metadata": model["metadata_exists"],
                             "suggestions": model["suggestions"],
-                            "dependencies": model["refs"]
+                            "dependencies": model["refs"],
                         }
                         for model in models
                     ],
                     "missing_metadata": missing_metadata,
-                    "metadata_coverage_percent": round((len(models) - len(missing_metadata)) / len(models) * 100, 1) if models else 0,
-                    "lineage_description": lineage_description
+                    "metadata_coverage_percent": round((len(models) - len(missing_metadata)) / len(models) * 100, 1)
+                    if models
+                    else 0,
+                    "lineage_description": lineage_description,
                 }
                 output_json(result)
             else:
