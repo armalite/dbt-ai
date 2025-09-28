@@ -9,12 +9,13 @@ import tempfile
 from dbt_ai.ai import generate_response, generate_response_advanced, MODERN_OPENAI
 from dbt_ai.config import Config
 
+
 def test_api_improvements():
     """Test the improved AI functionality"""
-    
+
     print("🧪 Testing dbt-ai v0.3.0 Improvements")
     print("=" * 50)
-    
+
     # Check API availability
     api_available = Config.is_api_available()
     print(f"📡 OpenAI API Available: {api_available}")
@@ -22,12 +23,12 @@ def test_api_improvements():
     print(f"🎯 Basic Model: {Config.get_basic_model()}")
     print(f"🚀 Advanced Model: {Config.get_advanced_model()}")
     print()
-    
+
     if not api_available:
         print("⚠️  No OpenAI API key found. Set OPENAI_API_KEY to test AI features.")
         print("   Non-AI features (metadata checking) still work without an API key.")
         return
-    
+
     # Test sample dbt model
     sample_model = """
     SELECT 
@@ -38,9 +39,9 @@ def test_api_improvements():
     FROM raw.customers
     WHERE status = 'active'
     """
-    
+
     prompt = f"Given the following dbt model customer_summary:\n\n{sample_model}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names. The suggestion should be specific to dbt models written in the Snowflake database system."
-    
+
     print("🤖 Testing Basic Suggestions...")
     try:
         basic_response = generate_response(prompt)
@@ -52,7 +53,7 @@ def test_api_improvements():
     except Exception as e:
         print(f"❌ Error generating basic suggestions: {e}")
         print()
-    
+
     print("🎓 Testing Advanced Suggestions...")
     try:
         advanced_response = generate_response_advanced(prompt)
@@ -64,8 +65,9 @@ def test_api_improvements():
     except Exception as e:
         print(f"❌ Error generating advanced suggestions: {e}")
         print()
-    
+
     print("🎉 Test completed! The new AI improvements are working.")
+
 
 if __name__ == "__main__":
     test_api_improvements()

@@ -1,5 +1,6 @@
 # Response models for structured AI output
 from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
