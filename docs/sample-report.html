@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBT Model Improvement Suggestions</title>
+    <style>
+        /* Add custom CSS styles here */
+
+        /* Body style */
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        /* Header style */
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333;
+            padding: 20px;
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* Container style */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        /* Model style */
+        .model {
+            margin-bottom: 40px;
+        }
+
+        /* Model name style */
+        .model h2 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        /* Suggestions style */
+        .model p {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        /* Missing metadata style */
+        .missing-metadata {
+            margin-top: 40px;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        /* Missing metadata header style */
+        .missing-metadata h2 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        /* Missing metadata list style */
+        .missing-metadata ul {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0 0 0 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>DBT Model Improvement Suggestions</h1>
+    </header>
+    <div class="container">
+        <h2>AI Generated Suggestions</h2>
+        
+            <div class="model">
+                <h2>my_second_dbt_model</h2>
+                <p><p>Suggestions for model <code>my_second_dbt_model</code>:</p>
+
+<ul>
+<li>Use explicit column selection instead of selecting all columns with '*'. This improves performance and clarity.</li>
+<li>Ensure consistent formatting by aligning SQL keywords (e.g., 'SELECT', 'FROM', 'WHERE') to improve readability.</li>
+<li>Consider using a Common Table Expression (CTE) if you plan to add more complex logic or transformations in the future. This will help keep your model organized.</li>
+<li>If applicable, use the 'id' column in a more descriptive way, such as filtering based on a specific condition or using a parameterized approach for dynamic filtering.</li>
+</ul>
+
+<p>The model is well-structured but can benefit from improved performance and readability practices.</p>
+</p>
+            </div>
+        
+            <div class="model">
+                <h2>my_third_dbt_model</h2>
+                <p><p>Suggestions for model <code>my_third_dbt_model</code>:</p>
+
+<ul>
+<li>Use the ref() function to reference the table instead of hardcoding the database and schema names.</li>
+<li>Select only the necessary columns instead of using * to improve performance and clarity.</li>
+<li>Format the SQL query for better readability, such as aligning the SELECT statement and WHERE clause.</li>
+<li>Consider using a Common Table Expression (CTE) if you plan to add more complex logic or transformations in the future.</li>
+</ul>
+
+<p>The model can be improved by following dbt best practices and enhancing readability.</p>
+</p>
+            </div>
+        
+            <div class="model">
+                <h2>my_first_dbt_model</h2>
+                <p><p>Suggestions for model <code>my_first_dbt_model</code>:</p>
+
+<ul>
+<li>Use the ref() function to reference other models instead of hardcoding table names.</li>
+<li>Consider using a more descriptive CTE name instead of 'source_data' to improve readability.</li>
+<li>Format the SQL code consistently, such as aligning the 'select' statements for better readability.</li>
+<li>Remove the commented-out section at the top if not needed, to keep the model clean and focused.</li>
+</ul>
+
+<p>The model is a good start, but there are opportunities to enhance readability and adhere to best practices.</p>
+</p>
+            </div>
+        
+        <div class="missing-metadata">
+            <h2>Models Missing Metadata</h2>
+            
+                <ul>
+                    
+                        <li>my_third_dbt_model</li>
+                    
+                </ul>
+            
+        </div>
+</body>
+</html>

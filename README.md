@@ -136,8 +136,18 @@ dbt-ai -f . --create-models 'Write me a model that uses all the sources availabl
 ```
 
 ## Generated Report
-This shows an example of a report generated from a DBT project containing 3 models
-![](images/generated_report_1.png?raw=true)
+
+The tool generates a comprehensive HTML report with AI-powered suggestions for each dbt model.
+
+### 🌐 [**View Live Demo Report**](https://armalite.github.io/dbt-ai/sample-report.html)
+
+The report includes:
+- 🤖 **AI-powered improvement suggestions** for each dbt model
+- 📋 **Metadata coverage analysis** showing which models need documentation
+- 🎨 **Professional styling** with responsive design
+- 🔗 **Model lineage information** and dependencies
+
+*The demo above shows the actual output generated from the sample dbt project included in this repository.*
 
 ## Changelog
 
