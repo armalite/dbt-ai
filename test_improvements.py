@@ -4,13 +4,11 @@ Test script to demonstrate the improvements in dbt-ai v0.3.0
 This script will test the new AI functionality if an API key is available
 """
 
-import os
-import tempfile
-from dbt_ai.ai import generate_response, generate_response_advanced, MODERN_OPENAI
+from dbt_ai.ai import MODERN_OPENAI, generate_response, generate_response_advanced
 from dbt_ai.config import Config
 
 
-def test_api_improvements():
+def test_api_improvements() -> None:
     """Test the improved AI functionality"""
 
     print("🧪 Testing dbt-ai v0.3.0 Improvements")
@@ -31,7 +29,7 @@ def test_api_improvements():
 
     # Test sample dbt model
     sample_model = """
-    SELECT 
+    SELECT
         customer_id,
         customer_name,
         email,
@@ -40,7 +38,13 @@ def test_api_improvements():
     WHERE status = 'active'
     """
 
-    prompt = f"Given the following dbt model customer_summary:\n\n{sample_model}\n\nPlease provide suggestions on how to improve this model in terms of syntax, code structure and dbt best practices such as using ref instead of hardcoding table names. The suggestion should be specific to dbt models written in the Snowflake database system."
+    prompt = (
+        f"Given the following dbt model customer_summary:\n\n{sample_model}\n\n"
+        "Please provide suggestions on how to improve this model in terms of syntax, "
+        "code structure and dbt best practices such as using ref instead of "
+        "hardcoding table names. The suggestion should be specific to dbt models "
+        "written in the Snowflake database system."
+    )
 
     print("🤖 Testing Basic Suggestions...")
     try:
