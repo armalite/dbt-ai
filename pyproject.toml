@@ -1,7 +1,7 @@
 [project]
 name = "dbt-ai"
 description = "AI-powered dbt helper with modern GPT models and enhanced prompts"
-version = "0.3.0"
+version = "0.3.1"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
