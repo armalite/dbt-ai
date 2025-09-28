@@ -2,7 +2,7 @@
 
 import glob
 import os
-from typing import Dict, List, Optional, Any
+from typing import List, Optional
 
 from fastmcp import FastMCP
 
@@ -27,22 +27,14 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
 
     app = FastMCP(
         name="dbt-ai Data Product Quality Hub",
-        instructions="A composite MCP server that provides dbt model analysis and data product quality assessment"
+        instructions="A composite MCP server that provides dbt model analysis and data product quality assessment",
     )
 
     # Initialize dbt processor
     dbt_processor = DbtModelProcessor(dbt_project_path, database)
 
-    @app.tool
-    def analyze_dbt_model(model_name: str) -> dict:
-        """Analyze a specific dbt model for quality and best practices
-
-        Args:
-            model_name: Name of the dbt model to analyze
-
-        Returns:
-            Comprehensive quality assessment including dbt analysis and metadata
-        """
+    def _analyze_dbt_model_impl(model_name: str) -> dict:
+        """Internal implementation for dbt model analysis"""
         try:
             # Use existing dbt analysis logic
             model_files = find_model_files(dbt_project_path)
@@ -54,7 +46,7 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
                     "error": f"Model '{model_name}' not found in project",
                     "metadata_exists": False,
                     "suggestions": "",
-                    "dependencies": []
+                    "dependencies": [],
                 }
 
             # Process using existing logic
@@ -65,7 +57,7 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
                 "dbt_analysis": result,
                 "metadata_exists": result["metadata_exists"],
                 "suggestions": result["suggestions"],
-                "dependencies": result["refs"]
+                "dependencies": result["refs"],
             }
 
         except Exception as e:
@@ -74,8 +66,20 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
                 "error": str(e),
                 "metadata_exists": False,
                 "suggestions": f"Error analyzing model: {str(e)}",
-                "dependencies": []
+                "dependencies": [],
             }
+
+    @app.tool
+    def analyze_dbt_model(model_name: str) -> dict:
+        """Analyze a specific dbt model for quality and best practices
+
+        Args:
+            model_name: Name of the dbt model to analyze
+
+        Returns:
+            Comprehensive quality assessment including dbt analysis and metadata
+        """
+        return _analyze_dbt_model_impl(model_name)
 
     @app.tool
     def check_metadata_coverage() -> dict:
@@ -95,9 +99,9 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
                 "total_models": len(models),
                 "models_with_metadata": [m["model_name"] for m in models if m["metadata_exists"]],
                 "missing_metadata": missing_metadata,
-                "metadata_coverage_percent": round(
-                    (len(models) - len(missing_metadata)) / len(models) * 100, 1
-                ) if models else 0
+                "metadata_coverage_percent": round((len(models) - len(missing_metadata)) / len(models) * 100, 1)
+                if models
+                else 0,
             }
 
         except Exception as e:
@@ -105,7 +109,7 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
                 "operation": "metadata_coverage_check",
                 "error": str(e),
                 "total_models": 0,
-                "metadata_coverage_percent": 0
+                "metadata_coverage_percent": 0,
             }
 
     @app.tool
@@ -129,10 +133,10 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
                     {
                         "name": model["model_name"],
                         "dependencies": model["refs"],
-                        "has_metadata": model["metadata_exists"]
+                        "has_metadata": model["metadata_exists"],
                     }
                     for model in models
-                ]
+                ],
             }
 
         except Exception as e:
@@ -141,7 +145,7 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
                 "error": str(e),
                 "lineage_description": "",
                 "total_models": 0,
-                "models": []
+                "models": [],
             }
 
     @app.tool
@@ -156,7 +160,7 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
         """
         try:
             # Start with dbt analysis
-            dbt_result = analyze_dbt_model(model_name)
+            dbt_result = _analyze_dbt_model_impl(model_name)
 
             # Placeholder for future integrations
             composite_assessment = {
@@ -169,25 +173,21 @@ def create_mcp_server(dbt_project_path: str, database: str = "snowflake") -> Fas
                 "recommendations": [
                     "Configure data quality monitoring (e.g., Monte Carlo MCP server)",
                     "Set up performance monitoring (e.g., Snowflake MCP server)",
-                    "Enable usage analytics (e.g., Looker MCP server)"
-                ]
+                    "Enable usage analytics (e.g., Looker MCP server)",
+                ],
             }
 
             return composite_assessment
 
         except Exception as e:
-            return {
-                "model_name": model_name,
-                "error": str(e),
-                "overall_score": 0
-            }
+            return {"model_name": model_name, "error": str(e), "overall_score": 0}
 
     return app
 
 
-async def run_mcp_server(dbt_project_path: str, database: str = "snowflake"):
+async def run_mcp_server(dbt_project_path: str, database: str = "snowflake") -> None:
     """Start the MCP server"""
-    print(f"🚀 Starting dbt-ai MCP Server")
+    print("🚀 Starting dbt-ai MCP Server")
     print(f"📁 dbt project: {dbt_project_path}")
     print(f"💾 Database: {database}")
     print("🔧 Available tools:")
@@ -203,7 +203,7 @@ async def run_mcp_server(dbt_project_path: str, database: str = "snowflake"):
     await app.run_stdio_async()
 
 
-def start_mcp_server(dbt_project_path: str, database: str = "snowflake", port: int = 8080):
+def start_mcp_server(dbt_project_path: str, database: str = "snowflake", _port: int = 8080) -> None:
     """Start the MCP server (sync wrapper)"""
     import asyncio
 
