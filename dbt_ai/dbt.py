@@ -106,16 +106,22 @@ class DbtModelProcessor:
 
     def model_has_metadata(self, model_name: str) -> bool:
         for yaml_file in self.yaml_files:
-            with open(yaml_file, "r") as f:
-                try:
+            # Skip if not a file (extra safety check)
+            if not os.path.isfile(yaml_file):
+                continue
+
+            try:
+                with open(yaml_file, "r") as f:
                     yaml_content = yaml.safe_load(f)
 
                     if yaml_content:
                         for item in yaml_content.get("models", []):
                             if isinstance(item, dict) and item.get("name") == model_name:
                                 return True
-                except yaml.YAMLError as e:
-                    print(f"Error parsing YAML file {yaml_file}: {e}")
+            except yaml.YAMLError as e:
+                print(f"Error parsing YAML file {yaml_file}: {e}")
+            except (OSError, IOError) as e:
+                print(f"Error reading file {yaml_file}: {e}")
 
         return False
 
