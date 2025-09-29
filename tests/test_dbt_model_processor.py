@@ -3,7 +3,7 @@
 import os
 from unittest.mock import mock_open, patch, call
 from unittest import mock
-from dbt_ai.dbt import DbtModelProcessor  #
+from data_product_hub.dbt import DbtModelProcessor  #
 
 
 def test_suggest_dbt_model_improvements(mock_generate_response, dbt_project):

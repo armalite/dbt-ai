@@ -65,7 +65,7 @@ def call_chat_completion(
         kwargs = {"model": model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature}
 
         if json_mode:
-            kwargs["response_format"] = {"type": "json_object"}
+            kwargs["response_format"] = {"type": "json_object"}  # type: ignore
 
         return client.chat.completions.create(**kwargs)
     else:
@@ -82,7 +82,8 @@ def call_chat_completion(
             "stop": None,
         }
 
-        return openai.ChatCompletion.create(**kwargs)
+        import openai as openai_legacy
+        return openai_legacy.ChatCompletion.create(**kwargs)  # type: ignore
 
 
 def generate_response(prompt: str) -> str:
@@ -319,7 +320,8 @@ def generate_dalle_image(prompt: str, image_size: str = "1024x1024") -> bytes:
             if not get_openai_client():  # This sets the API key
                 raise ValueError("OpenAI API key not available")
 
-            response = openai.Image.create(
+            import openai as openai_legacy
+            response = openai_legacy.Image.create(  # type: ignore
                 prompt=final_prompt[:1000],  # Keep it shorter for compatibility
                 n=1,
                 size=image_size,

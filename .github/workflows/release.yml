@@ -53,7 +53,7 @@ jobs:
       # Build deployer image to use for PyPI publishing
       - name: Build and push Docker image
         id: build
-        run: docker build -t dbt-ai-deployer .
+        run: docker build -t data-product-hub-deployer .
         env:
           DOCKER_BUILDKIT: 1
 
@@ -64,4 +64,4 @@ jobs:
             -e PYPI_USERNAME='__token__' \
             -e PYPI_PASSWORD_PROD='${{ secrets.PYPI_API_TOKEN }}' \
             -v $PWD:/app \
-            dbt-ai-deployer make publish-prod
+            data-product-hub-deployer make publish-prod

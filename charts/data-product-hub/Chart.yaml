@@ -1,0 +1,26 @@
+apiVersion: v2
+name: data-product-hub
+description: A Helm chart for Data Product Hub - Composite MCP Server
+type: application
+version: 0.1.0
+appVersion: "2.0"
+
+keywords:
+  - data-product
+  - data-quality
+  - dbt
+  - mcp
+  - model-context-protocol
+  - ai
+  - analytics
+
+home: https://github.com/armalite/data-product-hub
+sources:
+  - https://github.com/armalite/data-product-hub
+
+maintainers:
+  - name: armalite
+    url: https://github.com/armalite
+
+annotations:
+  category: Analytics

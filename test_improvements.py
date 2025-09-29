@@ -4,8 +4,8 @@ Test script to demonstrate the improvements in dbt-ai v0.3.0
 This script will test the new AI functionality if an API key is available
 """
 
-from dbt_ai.ai import MODERN_OPENAI, generate_response, generate_response_advanced
-from dbt_ai.config import Config
+from data_product_hub.ai import MODERN_OPENAI, generate_response, generate_response_advanced
+from data_product_hub.config import Config
 
 
 def test_api_improvements() -> None:

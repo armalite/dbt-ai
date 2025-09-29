@@ -7,7 +7,7 @@ from io import StringIO
 from unittest.mock import patch, MagicMock
 import pytest
 
-from dbt_ai.main import main, output_json, output_text_metadata_only, output_text_full_analysis
+from data_product_hub.main import main, output_json, output_text_metadata_only, output_text_full_analysis
 
 
 class TestOutputFunctions:
@@ -44,7 +44,7 @@ class TestOutputFunctions:
         assert "All models have associated metadata." in captured.out
         assert "Metadata check complete. 2 models analyzed." in captured.out
 
-    @patch("dbt_ai.main.generate_html_report")
+    @patch("data_product_hub.main.generate_html_report")
     def test_output_text_full_analysis(self, mock_html_report, capsys):
         """Test full analysis text output"""
         models = [{"model_name": "test_model", "metadata_exists": True}]
@@ -63,7 +63,7 @@ class TestOutputFunctions:
 
 
 class TestMainFunction:
-    @patch("dbt_ai.main.DbtModelProcessor")
+    @patch("data_product_hub.main.DbtModelProcessor")
     def test_main_metadata_only_json_output(self, mock_processor_class, capsys):
         """Test main function with --metadata-only flag and JSON output"""
         # Setup mock
@@ -75,7 +75,7 @@ class TestMainFunction:
         )
 
         # Mock sys.argv
-        test_args = ["dbt-ai", "-f", "/test/path", "--metadata-only", "--output", "json"]
+        test_args = ["data-product-hub", "-f", "/test/path", "--metadata-only", "--output", "json"]
         with patch.object(sys, "argv", test_args):
             main()
 
@@ -91,7 +91,7 @@ class TestMainFunction:
         assert output_data["missing_metadata"] == ["model2"]
         assert output_data["metadata_coverage_percent"] == 50.0
 
-    @patch("dbt_ai.main.DbtModelProcessor")
+    @patch("data_product_hub.main.DbtModelProcessor")
     def test_main_metadata_only_text_output(self, mock_processor_class, capsys):
         """Test main function with --metadata-only flag and text output"""
         # Setup mock
@@ -103,7 +103,7 @@ class TestMainFunction:
         )
 
         # Mock sys.argv
-        test_args = ["dbt-ai", "-f", "/test/path", "--metadata-only", "--output", "text"]
+        test_args = ["data-product-hub", "-f", "/test/path", "--metadata-only", "--output", "text"]
         with patch.object(sys, "argv", test_args):
             main()
 
@@ -112,7 +112,7 @@ class TestMainFunction:
         assert "The following models are missing metadata:" in captured.out
         assert "- model1" in captured.out
 
-    @patch("dbt_ai.main.DbtModelProcessor")
+    @patch("data_product_hub.main.DbtModelProcessor")
     def test_main_full_analysis_json_output(self, mock_processor_class, capsys):
         """Test main function with full analysis and JSON output"""
         # Setup mock
@@ -132,7 +132,7 @@ class TestMainFunction:
         mock_processor.generate_lineage.return_value = ("model1 depends on raw_table", MagicMock())
 
         # Mock sys.argv
-        test_args = ["dbt-ai", "-f", "/test/path", "--output", "json"]
+        test_args = ["data-product-hub", "-f", "/test/path", "--output", "json"]
         with patch.object(sys, "argv", test_args):
             main()
 
@@ -146,8 +146,8 @@ class TestMainFunction:
         assert output_data["models"][0]["suggestions"] == "Use better naming"
         assert output_data["lineage_description"] == "model1 depends on raw_table"
 
-    @patch("dbt_ai.main.DbtModelProcessor")
-    @patch("dbt_ai.main.generate_html_report")
+    @patch("data_product_hub.main.DbtModelProcessor")
+    @patch("data_product_hub.main.generate_html_report")
     def test_main_full_analysis_text_output(self, mock_html_report, mock_processor_class, capsys):
         """Test main function with full analysis and text output"""
         # Setup mock
@@ -157,7 +157,7 @@ class TestMainFunction:
         mock_processor.generate_lineage.return_value = ("model1 is a root node", MagicMock())
 
         # Mock sys.argv
-        test_args = ["dbt-ai", "-f", "/test/path", "--output", "text"]
+        test_args = ["data-product-hub", "-f", "/test/path", "--output", "text"]
         with patch.object(sys, "argv", test_args):
             main()
 
@@ -166,7 +166,7 @@ class TestMainFunction:
         captured = capsys.readouterr()
         assert "Generated improvement suggestions report at:" in captured.out
 
-    @patch("dbt_ai.main.DbtModelProcessor")
+    @patch("data_product_hub.main.DbtModelProcessor")
     def test_main_advanced_recommendations(self, mock_processor_class, capsys):
         """Test main function with advanced recommendations flag"""
         # Setup mock
@@ -176,14 +176,14 @@ class TestMainFunction:
         mock_processor.generate_lineage.return_value = ("", MagicMock())
 
         # Mock sys.argv
-        test_args = ["dbt-ai", "-f", "/test/path", "--advanced-rec"]
+        test_args = ["data-product-hub", "-f", "/test/path", "--advanced-rec"]
         with patch.object(sys, "argv", test_args):
             main()
 
         # Verify advanced flag was passed
         mock_processor.process_dbt_models.assert_called_once_with(advanced=True)
 
-    @patch("dbt_ai.main.DbtModelProcessor")
+    @patch("data_product_hub.main.DbtModelProcessor")
     def test_main_database_selection(self, mock_processor_class):
         """Test main function with database selection"""
         # Setup mock
@@ -193,14 +193,14 @@ class TestMainFunction:
         mock_processor.generate_lineage.return_value = ("", MagicMock())
 
         # Mock sys.argv
-        test_args = ["dbt-ai", "-f", "/test/path", "-d", "postgres"]
+        test_args = ["data-product-hub", "-f", "/test/path", "-d", "postgres"]
         with patch.object(sys, "argv", test_args):
             main()
 
         # Verify database was passed correctly
         mock_processor_class.assert_called_once_with("/test/path", "postgres")
 
-    @patch("dbt_ai.main.DbtModelProcessor")
+    @patch("data_product_hub.main.DbtModelProcessor")
     def test_main_create_models(self, mock_processor_class):
         """Test main function with create models functionality"""
         # Setup mock
@@ -208,14 +208,14 @@ class TestMainFunction:
         mock_processor_class.return_value = mock_processor
 
         # Mock sys.argv
-        test_args = ["dbt-ai", "-f", "/test/path", "--create-models", "Create a customer model"]
+        test_args = ["data-product-hub", "-f", "/test/path", "--create-models", "Create a customer model"]
         with patch.object(sys, "argv", test_args):
             main()
 
         # Verify create_dbt_models was called
         mock_processor.create_dbt_models.assert_called_once_with("Create a customer model")
 
-    @patch("dbt_ai.main.DbtModelProcessor")
+    @patch("data_product_hub.main.DbtModelProcessor")
     def test_main_default_output_is_json(self, mock_processor_class, capsys):
         """Test that JSON is the default output format"""
         # Setup mock
@@ -228,7 +228,7 @@ class TestMainFunction:
         mock_processor.generate_lineage.return_value = ("test lineage", MagicMock())
 
         # Mock sys.argv (no --output flag specified)
-        test_args = ["dbt-ai", "-f", "/test/path"]
+        test_args = ["data-product-hub", "-f", "/test/path"]
         with patch.object(sys, "argv", test_args):
             main()
 

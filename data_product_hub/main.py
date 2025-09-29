@@ -2,8 +2,8 @@ import argparse
 import json
 import os
 
-from dbt_ai.dbt import DbtModelProcessor
-from dbt_ai.report import generate_html_report
+from data_product_hub.dbt import DbtModelProcessor
+from data_product_hub.report import generate_html_report
 
 
 def output_json(data: dict) -> None:
@@ -80,7 +80,7 @@ def main() -> None:
     parser.add_argument(
         "--mcp-server",
         action="store_true",
-        help="Start MCP server mode for AI agent integration",
+        help="Start MCP server mode for AI agent integration (stdio transport)",
     )
     parser.add_argument(
         "--mcp-port",
@@ -88,18 +88,36 @@ def main() -> None:
         default=8080,
         help="Port for MCP server (default: 8080)",
     )
+    parser.add_argument(
+        "serve",
+        nargs="?",
+        const=True,
+        help="Start hostable MCP server mode (network accessible)",
+    )
+    parser.add_argument(
+        "--mcp-host",
+        default="localhost",
+        help="Host for hostable MCP server (default: localhost)",
+    )
     args = parser.parse_args()
 
-    # Handle MCP server mode
-    if args.mcp_server:
+    # Handle MCP server modes
+    if args.mcp_server or args.serve:
         if not args.dbt_project_path:
             print("❌ Error: --dbt-project-path is required for MCP server mode")
             return
 
         try:
-            from dbt_ai.mcp_server import start_mcp_server
+            if args.serve:
+                # Hostable MCP server mode
+                from data_product_hub.mcp_server import start_mcp_server_hostable
 
-            start_mcp_server(args.dbt_project_path, args.database, args.mcp_port)
+                start_mcp_server_hostable(args.dbt_project_path, args.database, args.mcp_host, args.mcp_port)
+            else:
+                # Traditional stdio MCP server mode
+                from data_product_hub.mcp_server import start_mcp_server
+
+                start_mcp_server(args.dbt_project_path, args.database, args.mcp_port)
         except ImportError:
             print("❌ Error: FastMCP not installed. Run: pip install fastmcp")
             return
