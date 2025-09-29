@@ -1,31 +1,33 @@
 # Data Product Hub
 
-**Composite MCP Server for Data Product Quality Assessment and AI Agent Integration**
+**Universal MCP Server for dbt Project Analysis - Works with Any GitHub Repository**
 
-A production-ready Model Context Protocol (MCP) server that provides comprehensive data product quality assessment by integrating dbt analysis with Git context and other data tools. Purpose-built for AI agents and modern data workflows.
+A production-ready Model Context Protocol (MCP) server that provides comprehensive dbt project quality assessment for **any GitHub repository**. Powered by GitHub App authentication for secure, scalable access to public and private repositories. Purpose-built for AI agents and modern data workflows.
 
 ## 🚀 What is Data Product Hub?
 
-Data Product Hub transforms your dbt project into an **agent-accessible data quality platform** that:
+Data Product Hub transforms **any dbt project on GitHub** into an **agent-accessible data quality platform** that:
 
-- **Analyzes dbt models** with AI-powered suggestions and best practices
+- **Analyzes ANY GitHub dbt repository** with AI-powered suggestions and best practices
+- **Works with public and private repos** via secure GitHub App authentication
+- **Supports subdirectory dbt projects** (detects dbt/, transform/, analytics/ folders)
 - **Checks metadata coverage** across your entire data product portfolio
 - **Maps data lineage** and dependency relationships
 - **Integrates with Git** for enhanced context and change analysis
 - **Exposes MCP tools** for seamless AI agent integration
-- **Deploys anywhere** - local CLI, Docker, Kubernetes, or FastMCP Cloud
+- **Deploys anywhere** - FastMCP Cloud (recommended), Docker, Kubernetes
 
 ## Features
 
-### 🔧 Core MCP Tools
-- `analyze_dbt_model(model_name)` - AI-powered dbt model analysis
-- `check_metadata_coverage()` - Project-wide metadata assessment
-- `get_project_lineage()` - Data dependency mapping
-- `assess_data_product_quality(model_name)` - Comprehensive quality scoring
-
-### 🆕 Enhanced Composite Tools
-- `analyze_dbt_model_with_git_context(model_name)` - dbt analysis + Git history
-- `get_composite_server_status()` - Server capabilities and integrations
+### 🔧 Universal MCP Tools (Work with Any GitHub Repository)
+- `analyze_dbt_model(model_name, repo_url)` - Basic dbt model analysis
+- `analyze_dbt_model_with_ai(model_name, repo_url)` - **NEW**: AI-powered analysis with user's OpenAI key
+- `check_metadata_coverage(repo_url)` - Project-wide metadata assessment
+- `get_project_lineage(repo_url)` - Data dependency mapping
+- `assess_data_product_quality(model_name, repo_url)` - Comprehensive quality scoring
+- `validate_github_repository(repo_url)` - Validate repo access and dbt structure
+- `analyze_dbt_model_with_git_context(model_name, repo_url)` - dbt analysis + Git history
+- `get_composite_server_status()` - Server capabilities and GitHub integration status
 
 ### 🌐 Deployment Flexibility
 - **Local CLI** - `dph -f ./project`
@@ -40,61 +42,117 @@ Data Product Hub transforms your dbt project into an **agent-accessible data qua
 
 ## Quick Start
 
-### Installation
+### 🎯 GitHub Repository Analysis (Recommended)
+
+**1. Install the GitHub App on your dbt repositories:**
+   - Visit: https://github.com/apps/data-product-hub/installations/new
+   - Select repositories containing dbt projects
+   - Grant read permissions
+
+**2. (Optional) Enable AI features by adding your OpenAI API key:**
+   - Go to Repository Settings → Environments
+   - Create or use any of these environment names: `production`, `prod`, `data-analysis`, `main`, or `staging`
+   - Add `OPENAI_API_KEY` as an **Environment Secret**
+   - Set the value to your OpenAI API key (`sk-proj-...`)
+   - This enables the `analyze_dbt_model_with_ai` tool
+   - **Note:** All other tools work without an API key - only AI-powered analysis requires it
+
+**3. Use via Claude Desktop:**
+   ```json
+   // Add to ~/.claude_desktop_config.json
+   {
+     "mcpServers": {
+       "data-product-hub": {
+         "command": "npx",
+         "args": ["-y", "@modelcontextprotocol/server-fetch", "https://data-product-hub.fastmcp.app/mcp"]
+       }
+     }
+   }
+   ```
+
+**4. Ask Claude to analyze any dbt repository:**
+   ```
+   "Analyze the customer_metrics model in https://github.com/company/analytics-dbt"
+   "Get AI-powered suggestions for the user_events model in github.com/company/dbt-models"
+   "Check metadata coverage for github.com/myorg/data-warehouse"
+   "Get project lineage for github.com/startup/dbt-models"
+   ```
+
+### 🖥️ Local CLI Usage (Backwards Compatible)
 
 ```bash
+# Install package
 pip install data-product-hub
-```
 
-### Basic Usage
-
-```bash
-# CLI analysis (backwards compatible)
+# CLI analysis
 dph -f ./my-dbt-project --metadata-only
 
-# Start hostable MCP server
-dph serve -f ./my-dbt-project --mcp-host 0.0.0.0
-
-# Start local MCP server for stdio connections
+# Start local MCP server
 dph --mcp-server -f ./my-dbt-project
 ```
 
-### Agent Integration
+### 🔌 Programmatic Integration
 
 ```python
 from fastmcp import Client
 
-# Connect to your MCP server
-client = Client("mcp+sse://localhost:8080")
+# Connect to the universal MCP server
+client = Client("https://data-product-hub.fastmcp.app/mcp")
 
 async with client:
-    # Check metadata coverage
-    coverage = await client.call_tool("check_metadata_coverage")
-
-    # Analyze specific model with Git context
+    # Basic analysis of any GitHub repository
     analysis = await client.call_tool(
-        "analyze_dbt_model_with_git_context",
-        {"model_name": "customer_summary"}
+        "analyze_dbt_model",
+        {
+            "model_name": "customer_summary",
+            "repo_url": "https://github.com/company/analytics-dbt"
+        }
+    )
+
+    # AI-powered analysis (requires OpenAI API key in environment secrets)
+    ai_analysis = await client.call_tool(
+        "analyze_dbt_model_with_ai",
+        {
+            "model_name": "customer_summary",
+            "repo_url": "https://github.com/company/analytics-dbt"
+        }
+    )
+
+    # Check metadata coverage across any project
+    coverage = await client.call_tool(
+        "check_metadata_coverage",
+        {"repo_url": "github.com/myorg/data-warehouse"}
     )
 ```
 
 ## Deployment Options
 
-### 1. FastMCP Cloud (Recommended for Getting Started)
+### 1. Use the Hosted Service (Recommended)
 
-Deploy to FastMCP Cloud with one click:
+**Ready to use immediately:**
+- MCP Server: `https://data-product-hub.fastmcp.app/mcp`
+- GitHub App: https://github.com/apps/data-product-hub/installations/new
 
-1. Visit [fastmcp.cloud](https://fastmcp.cloud)
-2. Connect your GitHub repository
-3. Entry point: `server.py:app`
-4. Set environment variables:
-   ```bash
-   DBT_PROJECT_PATH=./sample_dbt_project
-   DATABASE=snowflake
-   OPENAI_API_KEY=your-key
-   ```
+**Quick Setup:**
+1. Install the GitHub App on your dbt repositories
+2. Add the MCP server to Claude Desktop configuration
+3. Start analyzing any dbt repository via Claude
 
-[📖 Full FastMCP Cloud Guide](./FASTMCP_CLOUD_DEPLOYMENT.md)
+### 2. Deploy Your Own Instance
+
+For organizations wanting their own instance:
+
+**Prerequisites:**
+- Fork this repository
+- Create your own GitHub App with read permissions
+- Get GitHub App ID and base64-encoded private key
+
+**Deployment:**
+1. Deploy to FastMCP Cloud with entry point: `server.py`
+2. Set your GitHub App credentials as environment variables
+3. Share your GitHub App installation URL with users
+
+[📖 Complete Deployment Guide](./GITHUB_APP_SETUP.md)
 
 ### 2. Docker Deployment
 
@@ -121,16 +179,15 @@ helm install data-product-hub ./charts/data-product-hub \
 
 ## Configuration
 
-### Environment Variables
+The Data Product Hub MCP server is **ready to use** - no configuration required for end users! Just install the GitHub App and start analyzing.
+
+### For Local CLI Usage Only
 
 ```bash
-# Database configuration
+# Database configuration (local CLI only)
 DATABASE=snowflake  # snowflake, postgres, redshift, bigquery
 
-# Git integration
-ENABLE_GIT_INTEGRATION=true
-
-# OpenAI API (optional - for AI features)
+# OpenAI API (optional - for AI features in local CLI)
 OPENAI_API_KEY=your-openai-api-key
 DBT_AI_BASIC_MODEL=gpt-4o-mini
 DBT_AI_ADVANCED_MODEL=gpt-4o

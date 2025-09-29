@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from fastmcp import Client, FastMCP
 
+from data_product_hub.api_keys import get_api_key_source, get_openai_api_key
 from data_product_hub.dbt import DbtModelProcessor
 from data_product_hub.github_auth import get_github_auth
 from data_product_hub.repo_manager import repo_manager
@@ -68,7 +69,7 @@ class CompositeMCPManager:
                 else:
                     return {"result": str(result)}
         except Exception as e:
-            return {"error": f"Git MCP call failed: {str(e)}"}
+            return {"error": f"Git MCP call failed: {e!s}"}
 
     def get_connected_servers(self) -> Dict[str, str]:
         """Get list of connected external servers"""
@@ -76,9 +77,7 @@ class CompositeMCPManager:
 
 
 def create_github_mcp_server(
-    default_dbt_project_path: Optional[str] = None,
-    database: str = "snowflake",
-    enable_git_integration: bool = True
+    default_dbt_project_path: Optional[str] = None, database: str = "snowflake", enable_git_integration: bool = True
 ) -> FastMCP:
     """Create and configure the FastMCP server with GitHub repository support"""
 
@@ -108,7 +107,9 @@ def create_github_mcp_server(
         except Exception:
             pass  # Git integration optional
 
-    def _get_dbt_processor(repo_url: Optional[str] = None) -> tuple[Optional[DbtModelProcessor], Optional[str], Optional[Dict]]:
+    def _get_dbt_processor(
+        repo_url: Optional[str] = None,
+    ) -> tuple[Optional[DbtModelProcessor], Optional[str], Optional[Dict]]:
         """Get dbt processor for either GitHub repo or default local project
 
         Returns:
@@ -124,22 +125,37 @@ def create_github_mcp_server(
             if local_path is not None:
                 validation = repo_manager.validate_dbt_project(local_path)
                 if not validation["valid"]:
-                    return None, None, {
-                        "error": "Invalid dbt project",
-                        "message": "Repository does not contain a valid dbt project",
-                        "validation": validation
-                    }
+                    return (
+                        None,
+                        None,
+                        {
+                            "error": "Invalid dbt project",
+                            "message": "Repository does not contain a valid dbt project",
+                            "validation": validation,
+                        },
+                    )
 
-                return DbtModelProcessor(local_path, database), local_path, None
+                # Use the discovered dbt project path
+                dbt_subpath = validation.get("dbt_project_subpath", ".")
+                if dbt_subpath and dbt_subpath != ".":
+                    dbt_project_path = os.path.join(local_path, dbt_subpath)
+                else:
+                    dbt_project_path = local_path
+
+                return DbtModelProcessor(dbt_project_path, database), dbt_project_path, None
             else:
                 return None, None, {"error": "Failed to get repository path"}
         else:
             # Use default local project
             if not default_dbt_project_path:
-                return None, None, {
-                    "error": "No dbt project specified",
-                    "message": "Either provide repo_url parameter or configure default dbt project path"
-                }
+                return (
+                    None,
+                    None,
+                    {
+                        "error": "No dbt project specified",
+                        "message": "Either provide repo_url parameter or configure default dbt project path",
+                    },
+                )
 
             # We've already checked that default_dbt_project_path is not None above
             assert default_dbt_project_path is not None
@@ -193,7 +209,7 @@ def create_github_mcp_server(
                 "repo_url": repo_url,
                 "error": str(e),
                 "metadata_exists": False,
-                "suggestions": f"Error analyzing model: {str(e)}",
+                "suggestions": f"Error analyzing model: {e!s}",
                 "dependencies": [],
             }
 
@@ -210,6 +226,89 @@ def create_github_mcp_server(
             Comprehensive quality assessment including dbt analysis and metadata
         """
         return _analyze_dbt_model_impl(model_name, repo_url)
+
+    @app.tool
+    def analyze_dbt_model_with_ai(model_name: str, repo_url: Optional[str] = None) -> dict:
+        """Analyze a specific dbt model with AI-powered suggestions (requires OpenAI API key)
+
+        Args:
+            model_name: Name of the dbt model to analyze
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
+
+        Returns:
+            Enhanced dbt analysis with AI-powered suggestions and recommendations
+        """
+        # Get basic analysis first
+        basic_analysis = _analyze_dbt_model_impl(model_name, repo_url)
+
+        # Check for OpenAI API access
+        api_key = get_openai_api_key(repo_url)
+        if not api_key:
+            # Return basic analysis with note about missing API key
+            return {
+                **basic_analysis,
+                "ai_analysis": {
+                    "status": "unavailable",
+                    "message": "OpenAI API key not found. Add OPENAI_API_KEY to your repository's environment secrets.",
+                    "setup_instructions": [
+                        "1. Go to Repository Settings → Environments",
+                        "2. Create or select an environment (e.g., 'production')",
+                        "3. Add OPENAI_API_KEY as an Environment Secret",
+                        "4. Set the value to your OpenAI API key (sk-proj-...)",
+                    ],
+                },
+                "api_key_source": get_api_key_source(repo_url),
+            }
+
+        # Perform AI-enhanced analysis
+        try:
+            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
+            if error or not dbt_processor or not project_path:
+                return {**basic_analysis, "ai_analysis": {"status": "error", "message": "Could not access dbt project"}}
+
+            # Use existing dbt analysis logic with AI
+            model_files = find_model_files(project_path)
+            model_file = find_model_file(model_name, model_files)
+
+            if not model_file:
+                return {
+                    **basic_analysis,
+                    "ai_analysis": {"status": "error", "message": f"Model '{model_name}' not found"},
+                }
+
+            # Process with advanced AI analysis
+            # Note: This requires the dbt processor to be configured with the API key
+            import os
+
+            old_key = os.environ.get("OPENAI_API_KEY")
+            try:
+                os.environ["OPENAI_API_KEY"] = api_key
+                ai_result = dbt_processor.process_model(model_file, advanced=True)
+
+                return {
+                    **basic_analysis,
+                    "ai_analysis": {
+                        "status": "success",
+                        "advanced_suggestions": ai_result.get("suggestions", ""),
+                        "ai_recommendations": ai_result.get("ai_recommendations", []),
+                        "quality_score": ai_result.get("quality_score"),
+                    },
+                    "api_key_source": get_api_key_source(repo_url),
+                }
+            finally:
+                # Restore original environment
+                if old_key:
+                    os.environ["OPENAI_API_KEY"] = old_key
+                elif "OPENAI_API_KEY" in os.environ:
+                    del os.environ["OPENAI_API_KEY"]
+
+        except Exception as e:
+            return {
+                **basic_analysis,
+                "ai_analysis": {"status": "error", "message": f"AI analysis failed: {e!s}"},
+                "api_key_source": get_api_key_source(repo_url),
+            }
 
     @app.tool
     def check_metadata_coverage(repo_url: Optional[str] = None) -> dict:
@@ -346,15 +445,12 @@ def create_github_mcp_server(
             return composite_assessment
 
         except Exception as e:
-            return {
-                "model_name": model_name,
-                "repo_url": repo_url,
-                "error": str(e),
-                "overall_score": 0
-            }
+            return {"model_name": model_name, "repo_url": repo_url, "error": str(e), "overall_score": 0}
 
     @app.tool
-    def analyze_dbt_model_with_git_context(model_name: str, repo_url: Optional[str] = None, include_history: bool = True) -> dict:
+    def analyze_dbt_model_with_git_context(
+        model_name: str, repo_url: Optional[str] = None, include_history: bool = True
+    ) -> dict:
         """Enhanced dbt model analysis with Git context from connected Git MCP server
 
         Args:
@@ -401,7 +497,7 @@ def create_github_mcp_server(
                 }
 
             except Exception as e:
-                git_context = {"status": "error", "message": f"Git integration failed: {str(e)}"}
+                git_context = {"status": "error", "message": f"Git integration failed: {e!s}"}
 
         # Combine dbt analysis with Git context
         enhanced_result = {
@@ -434,23 +530,25 @@ def create_github_mcp_server(
                     "valid": False,
                     "repo_url": repo_url,
                     "error": "GitHub authentication not configured",
-                    "message": "GitHub App credentials are required for repository access"
+                    "message": "GitHub App credentials are required for repository access",
                 }
 
             # Validate repo access without cloning
             validation_result = github_auth.validate_repo_access(repo_url)
 
-            return {
-                "repo_url": repo_url,
-                **validation_result
-            }
+            # Remove sensitive access token from response
+            result = {"repo_url": repo_url, **validation_result}
+            # Don't expose access tokens in responses
+            if "access_token" in result:
+                del result["access_token"]
+            return result
 
         except Exception as e:
             return {
                 "valid": False,
                 "repo_url": repo_url,
                 "error": "Validation failed",
-                "message": f"Unexpected error: {str(e)}"
+                "message": f"Unexpected error: {e!s}",
             }
 
     @app.tool
@@ -468,7 +566,7 @@ def create_github_mcp_server(
             "github_integration": {
                 "enabled": github_auth is not None,
                 "status": "configured" if github_auth else "not_configured",
-                "message": "Ready for GitHub repository analysis" if github_auth else "GitHub App credentials required"
+                "message": "Ready for GitHub repository analysis" if github_auth else "GitHub App credentials required",
             },
             "git_integration": {
                 "enabled": git_available,
@@ -477,6 +575,7 @@ def create_github_mcp_server(
             "connected_servers": mcp_manager.get_connected_servers(),
             "available_tools": [
                 "analyze_dbt_model",
+                "analyze_dbt_model_with_ai",
                 "check_metadata_coverage",
                 "get_project_lineage",
                 "assess_data_product_quality",
@@ -484,10 +583,15 @@ def create_github_mcp_server(
                 "validate_github_repository",
                 "get_composite_server_status",
             ],
+            "ai_features": {
+                "local_openai_key": bool(os.getenv("OPENAI_API_KEY")),
+                "supports_user_api_keys": True,
+                "api_key_sources": ["local_environment", "github_environment_secrets"],
+            },
             "repository_support": {
                 "github_repositories": True,
                 "local_projects": bool(default_dbt_project_path),
-                "authentication": "GitHub App" if github_auth else "Not configured"
+                "authentication": "GitHub App" if github_auth else "Not configured",
             },
             "future_integrations": [
                 "Monte Carlo MCP (data quality)",
@@ -507,9 +611,7 @@ def create_mcp_server(
     return create_github_mcp_server(dbt_project_path, database, enable_git_integration)
 
 
-async def run_github_mcp_server(
-    default_dbt_project_path: Optional[str] = None, database: str = "snowflake"
-) -> None:
+async def run_github_mcp_server(default_dbt_project_path: Optional[str] = None, database: str = "snowflake") -> None:
     """Start the GitHub-enabled MCP server in stdio mode"""
     print("🚀 Starting Data Product Hub MCP Server with GitHub Support (stdio mode)")
     print(f"📁 Default dbt project: {default_dbt_project_path or 'None (GitHub repos only)'}")

@@ -48,7 +48,7 @@ class RepositoryManager:
             try:
                 owner, repo = github_auth.parse_github_url(repo_url)
                 safe_name = f"{owner}_{repo}_{repo_hash[:8]}"
-            except:
+            except Exception:
                 safe_name = f"repo_{repo_hash[:8]}"
         else:
             safe_name = f"repo_{repo_hash[:8]}"
@@ -72,11 +72,11 @@ class RepositoryManager:
             return False
 
         try:
-            with open(cache_time_file, 'r') as f:
+            with open(cache_time_file, "r") as f:
                 cache_timestamp = float(f.read().strip())
 
             return (time.time() - cache_timestamp) < self.cache_ttl
-        except:
+        except Exception:
             return False
 
     def _update_cache_timestamp(self, cache_path: Path) -> None:
@@ -86,7 +86,7 @@ class RepositoryManager:
             cache_path: Path to cached repository
         """
         cache_time_file = cache_path / ".cache_timestamp"
-        with open(cache_time_file, 'w') as f:
+        with open(cache_time_file, "w") as f:
             f.write(str(time.time()))
 
     def _cleanup_old_caches(self) -> None:
@@ -101,10 +101,10 @@ class RepositoryManager:
                 cache_time_file = item / ".cache_timestamp"
                 if cache_time_file.exists():
                     try:
-                        with open(cache_time_file, 'r') as f:
+                        with open(cache_time_file, "r") as f:
                             timestamp = float(f.read().strip())
                         cache_dirs.append((item, timestamp))
-                    except:
+                    except Exception:
                         # Remove corrupted cache
                         shutil.rmtree(item, ignore_errors=True)
 
@@ -131,14 +131,16 @@ class RepositoryManager:
             # Prepare clone URL with authentication if token is provided
             if access_token:
                 # Insert token into URL for private repos
-                if repo_url.startswith('https://github.com/'):
-                    auth_url = repo_url.replace('https://github.com/', f'https://x-access-token:{access_token}@github.com/')
+                if repo_url.startswith("https://github.com/"):
+                    auth_url = repo_url.replace(
+                        "https://github.com/", f"https://x-access-token:{access_token}@github.com/"
+                    )
                 else:
-                    auth_url = f'https://x-access-token:{access_token}@github.com/{repo_url}'
+                    auth_url = f"https://x-access-token:{access_token}@github.com/{repo_url}"
             else:
                 # For public repos, use the original URL
-                if not repo_url.startswith('https://'):
-                    auth_url = f'https://github.com/{repo_url}'
+                if not repo_url.startswith("https://"):
+                    auth_url = f"https://github.com/{repo_url}"
                 else:
                     auth_url = repo_url
 
@@ -147,9 +149,12 @@ class RepositoryManager:
                 shutil.rmtree(target_path)
 
             # Clone repository with depth=1 for faster cloning
-            result = subprocess.run([
-                'git', 'clone', '--depth', '1', auth_url, str(target_path)
-            ], capture_output=True, text=True, timeout=300)
+            result = subprocess.run(
+                ["git", "clone", "--depth", "1", auth_url, str(target_path)],
+                capture_output=True,
+                text=True,
+                timeout=300,
+            )
 
             if result.returncode == 0:
                 self._update_cache_timestamp(target_path)
@@ -182,7 +187,7 @@ class RepositoryManager:
             if not github_auth:
                 return None, {
                     "error": "GitHub authentication not configured",
-                    "message": "GitHub App credentials are required for repository access"
+                    "message": "GitHub App credentials are required for repository access",
                 }
 
             validation_result = github_auth.validate_repo_access(repo_url)
@@ -193,7 +198,7 @@ class RepositoryManager:
                 return None, {
                     "error": "Not a valid dbt project",
                     "message": "Repository must contain dbt_project.yml and models/ directory",
-                    "dbt_validation": validation_result["dbt_project"]
+                    "dbt_validation": validation_result["dbt_project"],
                 }
 
             access_token = validation_result["access_token"]
@@ -213,14 +218,11 @@ class RepositoryManager:
             else:
                 return None, {
                     "error": "Failed to clone repository",
-                    "message": f"Could not clone {repo_url}. Check repository URL and permissions."
+                    "message": f"Could not clone {repo_url}. Check repository URL and permissions.",
                 }
 
         except Exception as e:
-            return None, {
-                "error": "Repository access failed",
-                "message": f"Unexpected error: {str(e)}"
-            }
+            return None, {"error": "Repository access failed", "message": f"Unexpected error: {e!s}"}
 
     def validate_dbt_project(self, local_path: str) -> Dict[str, Any]:
         """Validate that a local directory contains a valid dbt project
@@ -234,17 +236,34 @@ class RepositoryManager:
         try:
             repo_path = Path(local_path)
 
-            # Check for dbt_project.yml
-            dbt_project_file = repo_path / "dbt_project.yml"
-            has_dbt_project = dbt_project_file.exists()
+            # Check for dbt_project.yml in common locations
+            dbt_paths_to_check = ["", "dbt", "transform", "analytics"]
+            has_dbt_project = False
+            has_models_dir = False
+            dbt_project_path = None
+            models_dir = None
+            dbt_project_file = None
 
-            # Check for models directory
-            models_dir = repo_path / "models"
-            has_models_dir = models_dir.exists() and models_dir.is_dir()
+            for subpath in dbt_paths_to_check:
+                if subpath:
+                    dbt_dir = repo_path / subpath
+                    if not dbt_dir.exists():
+                        continue
+                    dbt_project_file = dbt_dir / "dbt_project.yml"
+                    models_dir = dbt_dir / "models"
+                else:
+                    dbt_project_file = repo_path / "dbt_project.yml"
+                    models_dir = repo_path / "models"
+
+                if dbt_project_file.exists():
+                    has_dbt_project = True
+                    has_models_dir = models_dir.exists() and models_dir.is_dir()
+                    dbt_project_path = subpath if subpath else "."
+                    break
 
             # Count SQL files in models directory
             sql_files = []
-            if has_models_dir:
+            if has_models_dir and models_dir:
                 sql_files = list(models_dir.rglob("*.sql"))
 
             return {
@@ -252,16 +271,14 @@ class RepositoryManager:
                 "has_dbt_project_yml": has_dbt_project,
                 "has_models_directory": has_models_dir,
                 "sql_model_count": len(sql_files),
-                "models_path": str(models_dir) if has_models_dir else None,
-                "dbt_project_path": str(dbt_project_file) if has_dbt_project else None,
-                "repo_path": str(repo_path)
+                "models_path": str(models_dir) if has_models_dir and models_dir else None,
+                "dbt_project_file": str(dbt_project_file) if has_dbt_project and dbt_project_file else None,
+                "dbt_project_subpath": dbt_project_path,
+                "repo_path": str(repo_path),
             }
 
         except Exception as e:
-            return {
-                "valid": False,
-                "error": f"Error validating dbt project: {str(e)}"
-            }
+            return {"valid": False, "error": f"Error validating dbt project: {e!s}"}
 
     def cleanup_cache(self, max_age_hours: int = 24) -> int:
         """Clean up cached repositories older than specified age
@@ -283,13 +300,13 @@ class RepositoryManager:
                 cache_time_file = item / ".cache_timestamp"
                 if cache_time_file.exists():
                     try:
-                        with open(cache_time_file, 'r') as f:
+                        with open(cache_time_file, "r") as f:
                             timestamp = float(f.read().strip())
 
                         if timestamp < cutoff_time:
                             shutil.rmtree(item, ignore_errors=True)
                             cleanup_count += 1
-                    except:
+                    except Exception:
                         # Remove corrupted cache
                         shutil.rmtree(item, ignore_errors=True)
                         cleanup_count += 1
