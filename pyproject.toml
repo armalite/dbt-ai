@@ -1,7 +1,7 @@
 [project]
-name = "dbt-ai"
-description = "AI-powered dbt helper with modern GPT models and enhanced prompts"
-version = "0.4.0"
+name = "data-product-hub"
+description = "Composite MCP server for data product quality assessment and AI agent integration"
+version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -13,7 +13,12 @@ dependencies = [
     "pyvis~=0.3.2",
     "plotly~=5.14",
     "numpy~=1.24",
+    "fastmcp==2.11.3",
 ]
+
+[project.scripts]
+data-product-hub = "data_product_hub.main:main"
+dph = "data_product_hub.main:main"
 
 [project.optional-dependencies]
 dev = [

@@ -2,8 +2,8 @@
 
 import os
 
-from dbt_ai.dbt import DbtModelProcessor  #
-from dbt_ai.helper import find_yaml_files
+from data_product_hub.dbt import DbtModelProcessor  #
+from data_product_hub.helper import find_yaml_files
 
 
 def test_find_yaml_files(dbt_project):

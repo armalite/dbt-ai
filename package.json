@@ -1,5 +1,5 @@
 {
-    "name": "dbt-ai",
+    "name": "data-product-hub",
     "devDependencies": {
         "pyright": "1.1.298"
     }

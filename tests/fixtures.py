@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from dbt_ai.dbt import DbtModelProcessor
+from data_product_hub.dbt import DbtModelProcessor
 
 sample_sql_content = "SELECT * FROM table1;"
 
@@ -56,7 +56,7 @@ def mock_generate_response_advanced():
 
 @pytest.fixture
 def mock_generate_models():
-    with patch("dbt_ai.dbt.generate_models") as mock:
+    with patch("data_product_hub.dbt.generate_models") as mock:
         mock.return_value = [
             "model_name: model_a\n\nSELECT *\nFROM {{ source('beautiful_source', 'organisation') }}\n",
             "model_name: model_b\n\nSELECT *\nFROM {{ source('beautiful_source', 'user') }}\n",

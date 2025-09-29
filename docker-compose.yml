@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  data-product-hub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount your dbt project here
+      - "./sample_dbt_project:/dbt-project:ro"
+    environment:
+      # Optional: Add your OpenAI API key
+      # - OPENAI_API_KEY=your-api-key-here
+      - DBT_AI_BASIC_MODEL=gpt-4o-mini
+      - DBT_AI_ADVANCED_MODEL=gpt-4o
+    command: ["data-product-hub", "serve", "-f", "/dbt-project", "--mcp-host", "0.0.0.0", "--mcp-port", "8080"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Example: Git MCP server (if you want to test Git integration)
+  # git-mcp:
+  #   image: git-mcp-server:latest
+  #   ports:
+  #     - "8081:8080"
+  #   volumes:
+  #     - "./:/git-repo:ro"

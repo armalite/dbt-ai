@@ -1,0 +1,143 @@
+# Default values for data-product-hub MCP Server
+
+replicaCount: 1
+
+image:
+  repository: data-product-hub
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# data-product-hub specific configuration
+dbtAi:
+  # Database type for dbt analysis
+  database: "snowflake"
+
+  # Git integration settings
+  gitIntegration:
+    enabled: true
+    # Optional: external Git MCP server URL
+    # serverUrl: "https://git-mcp.example.com"
+
+  # MCP server configuration
+  mcpServer:
+    host: "0.0.0.0"
+    port: 8080
+
+# ConfigMap for dbt project
+dbtProject:
+  # Enable if you want to provide dbt project via ConfigMap
+  useConfigMap: false
+  configMapName: "dbt-project-config"
+
+# Persistent Volume for dbt project
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  # Existing claim name (if using existing PVC)
+  existingClaim: ""
+  # Host path (for local development)
+  hostPath: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+  runAsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: data-product-hub.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Health check configuration
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Environment variables
+env:
+  # OpenAI API configuration
+  - name: OPENAI_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: data-product-hub-secrets
+        key: openai-api-key
+        optional: true
+
+  # data-product-hub configuration
+  - name: DBT_AI_BASIC_MODEL
+    value: "gpt-4o-mini"
+  - name: DBT_AI_ADVANCED_MODEL
+    value: "gpt-4o"
+  - name: DBT_AI_MAX_TOKENS
+    value: "4000"
+  - name: DBT_AI_TEMPERATURE
+    value: "0.1"
