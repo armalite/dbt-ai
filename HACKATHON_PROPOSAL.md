@@ -6,31 +6,32 @@
 
 ## 🎯 Goal
 
-Transform our **Data Product Hub** from a single dbt analysis tool into a **unified information hub** that aggregates insights from multiple data platforms through one MCP interface.
+Extend **Data Product Hub** into a **unified information hub** by integrating with data platform MCP servers we have access to (GitHub, Monte Carlo, DataHub, etc.).
 
-**Current State:** ✅ Production dbt analysis MCP server
-**Hackathon Goal:** 🎯 Add 2-3 platform integrations for comprehensive data product visibility
+**Current State:** ✅ Working dbt analysis MCP server
+**Hackathon Goal:** 🎯 Add data platform integrations for comprehensive data product visibility
 
 ---
 
-## 🏗️ What We Have (Proven Foundation)
+## 🏗️ What's Been Built (Proven Foundation)
 
-- ✅ **Production MCP server** - Live at `data-product-hub.fastmcp.app/mcp`
+- ✅ **Working MCP server** - Live at `data-product-hub.fastmcp.app/mcp`
 - ✅ **GitHub App authentication** with Environment Secrets pattern
-- ✅ **8 working dbt analysis tools**
+- ✅ **8 dbt analysis tools** - Model analysis, metadata coverage, lineage
 - ✅ **Repository support** - Works with any GitHub dbt project
+- ✅ **FastMCP integration patterns** - Proven deployment and auth flows
 
 ---
 
 ## 🎯 Target Users
 
-### **Data Product Team Owners**
+### **Data Product Teams**
 - Need to quickly assess health of their data products
-- Currently switch between 4-5 different tools
+- Currently switch between multiple data tools
 - Want unified view without replacing existing workflows
 
 ### **Platform Teams**
-- Support multiple data teams using various tools
+- Support multiple data teams using various data platforms
 - Need to understand cross-platform dependencies
 - Want centralized visibility for better support
 
@@ -38,15 +39,15 @@ Transform our **Data Product Hub** from a single dbt analysis tool into a **unif
 
 ## 📋 MVP Scope (Realistic for 5 Days)
 
-### Core Integration Target: **2 Additional Platforms**
+### Core Integration Target: **2 Data Platforms**
 
 **Option A: GitHub + Monte Carlo**
-- GitHub MCP integration for code context
+- GitHub MCP integration for repo context
 - Monte Carlo API for data quality metrics
 - Focus: Code changes + data quality correlation
 
 **Option B: GitHub + DataHub**
-- GitHub MCP integration for code context
+- GitHub MCP integration for repo context
 - DataHub API for metadata and lineage
 - Focus: Code changes + metadata completeness
 
@@ -151,9 +152,9 @@ Response:
 - [ ] 2-3 realistic scenarios showing value
 
 ### Outcome
-- [ ] Teams want to use it
+- [ ] Data teams want to use it
 - [ ] Platform team sees support value
-- [ ] Clear next steps for post-hackathon development
+- [ ] Clear next steps for adoption
 
 ---
 
