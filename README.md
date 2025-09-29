@@ -28,8 +28,8 @@ Data Product Hub transforms your dbt project into an **agent-accessible data qua
 - `get_composite_server_status()` - Server capabilities and integrations
 
 ### 🌐 Deployment Flexibility
-- **Local CLI** - `data-product-hub -f ./project`
-- **Hostable MCP Server** - `data-product-hub serve --mcp-host 0.0.0.0`
+- **Local CLI** - `dph -f ./project`
+- **Hostable MCP Server** - `dph serve --mcp-host 0.0.0.0`
 - **Container Deployment** - Docker + Kubernetes + Helm charts
 - **FastMCP Cloud** - One-click cloud deployment
 
@@ -50,13 +50,13 @@ pip install data-product-hub
 
 ```bash
 # CLI analysis (backwards compatible)
-data-product-hub -f ./my-dbt-project --metadata-only
+dph -f ./my-dbt-project --metadata-only
 
 # Start hostable MCP server
-data-product-hub serve -f ./my-dbt-project --mcp-host 0.0.0.0
+dph serve -f ./my-dbt-project --mcp-host 0.0.0.0
 
 # Start local MCP server for stdio connections
-data-product-hub --mcp-server -f ./my-dbt-project
+dph --mcp-server -f ./my-dbt-project
 ```
 
 ### Agent Integration
@@ -185,8 +185,8 @@ If you're upgrading from the legacy `dbt-ai` package:
 # Old command
 dbt-ai -f ./project --metadata-only
 
-# New command (identical functionality)
-data-product-hub -f ./project --metadata-only
+# New command (identical functionality) - use the short dph command!
+dph -f ./project --metadata-only
 ```
 
 All CLI functionality is **100% backwards compatible**.

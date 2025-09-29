@@ -150,7 +150,7 @@ If you were using the self-hosted version:
 
 ```bash
 # Old: Self-hosted
-data-product-hub serve -f ./project --mcp-host 0.0.0.0
+dph serve -f ./project --mcp-host 0.0.0.0
 
 # New: FastMCP Cloud
 # Just deploy and use the provided URL!
