@@ -1,4 +1,4 @@
-"""MCP Server for dbt-ai - Data Product Quality Hub"""
+"""Enhanced MCP Server for Data Product Hub with GitHub Repository Support"""
 
 import glob
 import os
@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Optional
 from fastmcp import Client, FastMCP
 
 from data_product_hub.dbt import DbtModelProcessor
+from data_product_hub.github_auth import get_github_auth
+from data_product_hub.repo_manager import repo_manager
 
 
 def find_model_files(dbt_project_path: str) -> List[str]:
@@ -66,28 +68,28 @@ class CompositeMCPManager:
                 else:
                     return {"result": str(result)}
         except Exception as e:
-            return {"error": f"Git MCP call failed: {e!s}"}
+            return {"error": f"Git MCP call failed: {str(e)}"}
 
     def get_connected_servers(self) -> Dict[str, str]:
         """Get list of connected external servers"""
         return self.connected_servers.copy()
 
 
-def create_mcp_server(
-    dbt_project_path: str, database: str = "snowflake", enable_git_integration: bool = True
+def create_github_mcp_server(
+    default_dbt_project_path: Optional[str] = None,
+    database: str = "snowflake",
+    enable_git_integration: bool = True
 ) -> FastMCP:
-    """Create and configure the FastMCP server with composite capabilities"""
+    """Create and configure the FastMCP server with GitHub repository support"""
 
     app = FastMCP(
         name="Data Product Hub",
         instructions=(
-            "A composite MCP server that provides dbt model analysis and "
-            "data product quality assessment with Git integration"
+            "A composite MCP server that provides dbt model analysis and data product quality assessment. "
+            "Supports analysis of any GitHub dbt repository with proper authentication. "
+            "Tools accept either a repo_url parameter for GitHub repositories or use the default local project."
         ),
     )
-
-    # Initialize dbt processor
-    dbt_processor = DbtModelProcessor(dbt_project_path, database)
 
     # Initialize composite MCP manager
     mcp_manager = CompositeMCPManager()
@@ -106,16 +108,66 @@ def create_mcp_server(
         except Exception:
             pass  # Git integration optional
 
-    def _analyze_dbt_model_impl(model_name: str) -> dict:
+    def _get_dbt_processor(repo_url: Optional[str] = None) -> tuple[Optional[DbtModelProcessor], Optional[str], Optional[Dict]]:
+        """Get dbt processor for either GitHub repo or default local project
+
+        Returns:
+            Tuple of (processor, project_path, error_info)
+        """
+        if repo_url:
+            # Handle GitHub repository
+            local_path, error = repo_manager.get_repository(repo_url)
+            if error:
+                return None, None, error
+
+            # Validate it's a proper dbt project
+            if local_path is not None:
+                validation = repo_manager.validate_dbt_project(local_path)
+                if not validation["valid"]:
+                    return None, None, {
+                        "error": "Invalid dbt project",
+                        "message": "Repository does not contain a valid dbt project",
+                        "validation": validation
+                    }
+
+                return DbtModelProcessor(local_path, database), local_path, None
+            else:
+                return None, None, {"error": "Failed to get repository path"}
+        else:
+            # Use default local project
+            if not default_dbt_project_path:
+                return None, None, {
+                    "error": "No dbt project specified",
+                    "message": "Either provide repo_url parameter or configure default dbt project path"
+                }
+
+            # We've already checked that default_dbt_project_path is not None above
+            assert default_dbt_project_path is not None
+            return DbtModelProcessor(default_dbt_project_path, database), default_dbt_project_path, None
+
+    def _analyze_dbt_model_impl(model_name: str, repo_url: Optional[str] = None) -> dict:
         """Internal implementation for dbt model analysis"""
         try:
+            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
+            if error or not dbt_processor or not project_path:
+                return {
+                    "model_name": model_name,
+                    "repo_url": repo_url,
+                    **(error or {"error": "Failed to get dbt processor"}),
+                    "metadata_exists": False,
+                    "suggestions": "",
+                    "dependencies": [],
+                }
+
             # Use existing dbt analysis logic
-            model_files = find_model_files(dbt_project_path)
+            model_files = find_model_files(project_path)
             model_file = find_model_file(model_name, model_files)
 
             if not model_file:
                 return {
                     "model_name": model_name,
+                    "repo_url": repo_url,
+                    "project_path": project_path,
                     "error": f"Model '{model_name}' not found in project",
                     "metadata_exists": False,
                     "suggestions": "",
@@ -127,6 +179,8 @@ def create_mcp_server(
 
             return {
                 "model_name": result["model_name"],
+                "repo_url": repo_url,
+                "project_path": project_path,
                 "dbt_analysis": result,
                 "metadata_exists": result["metadata_exists"],
                 "suggestions": result["suggestions"],
@@ -136,38 +190,56 @@ def create_mcp_server(
         except Exception as e:
             return {
                 "model_name": model_name,
+                "repo_url": repo_url,
                 "error": str(e),
                 "metadata_exists": False,
-                "suggestions": f"Error analyzing model: {e!s}",
+                "suggestions": f"Error analyzing model: {str(e)}",
                 "dependencies": [],
             }
 
     @app.tool
-    def analyze_dbt_model(model_name: str) -> dict:
+    def analyze_dbt_model(model_name: str, repo_url: Optional[str] = None) -> dict:
         """Analyze a specific dbt model for quality and best practices
 
         Args:
             model_name: Name of the dbt model to analyze
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
 
         Returns:
             Comprehensive quality assessment including dbt analysis and metadata
         """
-        return _analyze_dbt_model_impl(model_name)
+        return _analyze_dbt_model_impl(model_name, repo_url)
 
     @app.tool
-    def check_metadata_coverage() -> dict:
+    def check_metadata_coverage(repo_url: Optional[str] = None) -> dict:
         """Check metadata coverage across all dbt models
+
+        Args:
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
 
         Returns:
             Summary of metadata coverage including missing models and statistics
         """
         try:
+            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
+            if error or not dbt_processor or not project_path:
+                return {
+                    "operation": "metadata_coverage_check",
+                    "repo_url": repo_url,
+                    **(error or {"error": "Failed to get dbt processor"}),
+                    "total_models": 0,
+                    "metadata_coverage_percent": 0,
+                }
+
             # Use existing metadata checking logic
             models, missing_metadata = dbt_processor.process_dbt_models(metadata_only=True)
 
             return {
                 "operation": "metadata_coverage_check",
-                "project_path": dbt_project_path,
+                "repo_url": repo_url,
+                "project_path": project_path,
                 "database": database,
                 "total_models": len(models),
                 "models_with_metadata": [m["model_name"] for m in models if m["metadata_exists"]],
@@ -180,26 +252,43 @@ def create_mcp_server(
         except Exception as e:
             return {
                 "operation": "metadata_coverage_check",
+                "repo_url": repo_url,
                 "error": str(e),
                 "total_models": 0,
                 "metadata_coverage_percent": 0,
             }
 
     @app.tool
-    def get_project_lineage() -> dict:
+    def get_project_lineage(repo_url: Optional[str] = None) -> dict:
         """Get lineage information for all models in the dbt project
+
+        Args:
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
 
         Returns:
             Model lineage description and dependency information
         """
         try:
+            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
+            if error or not dbt_processor or not project_path:
+                return {
+                    "operation": "project_lineage",
+                    "repo_url": repo_url,
+                    **(error or {"error": "Failed to get dbt processor"}),
+                    "lineage_description": "",
+                    "total_models": 0,
+                    "models": [],
+                }
+
             # Use existing lineage logic
             models, _ = dbt_processor.process_dbt_models(metadata_only=True)
             lineage_description, graph = dbt_processor.generate_lineage(models)
 
             return {
                 "operation": "project_lineage",
-                "project_path": dbt_project_path,
+                "repo_url": repo_url,
+                "project_path": project_path,
                 "lineage_description": lineage_description,
                 "total_models": len(models),
                 "models": [
@@ -215,6 +304,7 @@ def create_mcp_server(
         except Exception as e:
             return {
                 "operation": "project_lineage",
+                "repo_url": repo_url,
                 "error": str(e),
                 "lineage_description": "",
                 "total_models": 0,
@@ -222,22 +312,25 @@ def create_mcp_server(
             }
 
     @app.tool
-    def assess_data_product_quality(model_name: str) -> dict:
-        """Comprehensive data product quality assessment (future: will aggregate multiple tools)
+    def assess_data_product_quality(model_name: str, repo_url: Optional[str] = None) -> dict:
+        """Comprehensive data product quality assessment
 
         Args:
             model_name: Name of the data product/model to assess
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
 
         Returns:
             Comprehensive quality assessment from multiple tools
         """
         try:
             # Start with dbt analysis
-            dbt_result = _analyze_dbt_model_impl(model_name)
+            dbt_result = _analyze_dbt_model_impl(model_name, repo_url)
 
             # Placeholder for future integrations
             composite_assessment = {
                 "model_name": model_name,
+                "repo_url": repo_url,
                 "dbt_analysis": dbt_result,
                 "data_quality": {"status": "not_configured", "message": "No data quality tools configured"},
                 "performance": {"status": "not_configured", "message": "No performance monitoring configured"},
@@ -253,21 +346,28 @@ def create_mcp_server(
             return composite_assessment
 
         except Exception as e:
-            return {"model_name": model_name, "error": str(e), "overall_score": 0}
+            return {
+                "model_name": model_name,
+                "repo_url": repo_url,
+                "error": str(e),
+                "overall_score": 0
+            }
 
     @app.tool
-    def analyze_dbt_model_with_git_context(model_name: str, include_history: bool = True) -> dict:
+    def analyze_dbt_model_with_git_context(model_name: str, repo_url: Optional[str] = None, include_history: bool = True) -> dict:
         """Enhanced dbt model analysis with Git context from connected Git MCP server
 
         Args:
             model_name: Name of the dbt model to analyze
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
             include_history: Whether to include Git history and blame information
 
         Returns:
             Enhanced analysis including dbt quality assessment and Git context
         """
         # Start with basic dbt analysis
-        dbt_result = _analyze_dbt_model_impl(model_name)
+        dbt_result = _analyze_dbt_model_impl(model_name, repo_url)
 
         # Add Git context if available and requested
         git_context = {"status": "not_available", "message": "Git integration not enabled"}
@@ -301,7 +401,7 @@ def create_mcp_server(
                 }
 
             except Exception as e:
-                git_context = {"status": "error", "message": f"Git integration failed: {e!s}"}
+                git_context = {"status": "error", "message": f"Git integration failed: {str(e)}"}
 
         # Combine dbt analysis with Git context
         enhanced_result = {
@@ -310,11 +410,48 @@ def create_mcp_server(
             "analysis_type": "enhanced_with_git",
             "composite_features": {
                 "git_integration": git_available,
+                "github_repository_support": True,
                 "available_integrations": list(mcp_manager.get_connected_servers().keys()),
             },
         }
 
         return enhanced_result
+
+    @app.tool
+    def validate_github_repository(repo_url: str) -> dict:
+        """Validate GitHub repository access and dbt project structure
+
+        Args:
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo')
+
+        Returns:
+            Validation results including repository access and dbt project structure
+        """
+        try:
+            github_auth = get_github_auth()
+            if not github_auth:
+                return {
+                    "valid": False,
+                    "repo_url": repo_url,
+                    "error": "GitHub authentication not configured",
+                    "message": "GitHub App credentials are required for repository access"
+                }
+
+            # Validate repo access without cloning
+            validation_result = github_auth.validate_repo_access(repo_url)
+
+            return {
+                "repo_url": repo_url,
+                **validation_result
+            }
+
+        except Exception as e:
+            return {
+                "valid": False,
+                "repo_url": repo_url,
+                "error": "Validation failed",
+                "message": f"Unexpected error: {str(e)}"
+            }
 
     @app.tool
     def get_composite_server_status() -> dict:
@@ -323,9 +460,16 @@ def create_mcp_server(
         Returns:
             Status of all connected external servers and their capabilities
         """
+        github_auth = get_github_auth()
+
         return {
             "server_name": "Data Product Hub",
-            "version": "2.0-composite",
+            "version": "2.0-github-composite",
+            "github_integration": {
+                "enabled": github_auth is not None,
+                "status": "configured" if github_auth else "not_configured",
+                "message": "Ready for GitHub repository analysis" if github_auth else "GitHub App credentials required"
+            },
             "git_integration": {
                 "enabled": git_available,
                 "status": "connected" if git_available else "not_available",
@@ -337,8 +481,14 @@ def create_mcp_server(
                 "get_project_lineage",
                 "assess_data_product_quality",
                 "analyze_dbt_model_with_git_context",
+                "validate_github_repository",
                 "get_composite_server_status",
             ],
+            "repository_support": {
+                "github_repositories": True,
+                "local_projects": bool(default_dbt_project_path),
+                "authentication": "GitHub App" if github_auth else "Not configured"
+            },
             "future_integrations": [
                 "Monte Carlo MCP (data quality)",
                 "DataHub MCP (data catalog)",
@@ -349,74 +499,41 @@ def create_mcp_server(
     return app
 
 
-async def run_mcp_server(dbt_project_path: str, database: str = "snowflake") -> None:
-    """Start the MCP server in stdio mode"""
-    print("🚀 Starting dbt-ai MCP Server (stdio mode)")
-    print(f"📁 dbt project: {dbt_project_path}")
+# Backwards compatibility - keep original function for local projects
+def create_mcp_server(
+    dbt_project_path: str, database: str = "snowflake", enable_git_integration: bool = True
+) -> FastMCP:
+    """Create MCP server with GitHub support (backwards compatible)"""
+    return create_github_mcp_server(dbt_project_path, database, enable_git_integration)
+
+
+async def run_github_mcp_server(
+    default_dbt_project_path: Optional[str] = None, database: str = "snowflake"
+) -> None:
+    """Start the GitHub-enabled MCP server in stdio mode"""
+    print("🚀 Starting Data Product Hub MCP Server with GitHub Support (stdio mode)")
+    print(f"📁 Default dbt project: {default_dbt_project_path or 'None (GitHub repos only)'}")
     print(f"💾 Database: {database}")
     print("🔧 Available tools:")
-    print("   - analyze_dbt_model(model_name)")
-    print("   - check_metadata_coverage()")
-    print("   - get_project_lineage()")
-    print("   - assess_data_product_quality(model_name)")
-    print("   🆕 analyze_dbt_model_with_git_context(model_name)")
-    print("   🆕 get_composite_server_status()")
+    print("   - analyze_dbt_model(model_name, repo_url=None)")
+    print("   - check_metadata_coverage(repo_url=None)")
+    print("   - get_project_lineage(repo_url=None)")
+    print("   - assess_data_product_quality(model_name, repo_url=None)")
+    print("   - analyze_dbt_model_with_git_context(model_name, repo_url=None)")
+    print("   - validate_github_repository(repo_url)")
+    print("   - get_composite_server_status()")
+    print()
+    print("🔗 GitHub Repository Support:")
+    github_auth = get_github_auth()
+    if github_auth:
+        print("   ✅ GitHub App authentication configured")
+        print("   📋 Users can analyze any dbt repo by providing repo_url parameter")
+    else:
+        print("   ❌ GitHub App authentication not configured")
+        print("   💡 Set GITHUB_APP_ID and GITHUB_APP_PRIVATE_KEY_BASE64 environment variables")
     print()
 
-    app = create_mcp_server(dbt_project_path, database)
+    app = create_github_mcp_server(default_dbt_project_path, database)
 
     # Start FastMCP server in stdio mode (standard for MCP)
     await app.run_stdio_async()
-
-
-async def run_mcp_server_hostable(
-    dbt_project_path: str, database: str = "snowflake", host: str = "localhost", port: int = 8080
-) -> None:
-    """Start the MCP server in hostable mode (SSE transport)"""
-    print("🚀 Starting dbt-ai MCP Server (hostable mode)")
-    print(f"📁 dbt project: {dbt_project_path}")
-    print(f"💾 Database: {database}")
-    print(f"🌐 Host: {host}:{port}")
-    print("🔧 Available tools:")
-    print("   - analyze_dbt_model(model_name)")
-    print("   - check_metadata_coverage()")
-    print("   - get_project_lineage()")
-    print("   - assess_data_product_quality(model_name)")
-    print("   🆕 analyze_dbt_model_with_git_context(model_name)")
-    print("   🆕 get_composite_server_status()")
-    print()
-    print(f"🔗 MCP clients can connect to: mcp+sse://{host}:{port}")
-    print()
-
-    app = create_mcp_server(dbt_project_path, database)
-
-    # Start FastMCP server in SSE mode (hostable)
-    await app.run_sse_async(host=host, port=port)
-
-
-def start_mcp_server(dbt_project_path: str, database: str = "snowflake", _port: int = 8080) -> None:
-    """Start the MCP server in stdio mode (sync wrapper)"""
-    import asyncio
-
-    try:
-        asyncio.run(run_mcp_server(dbt_project_path, database))
-    except KeyboardInterrupt:
-        print("\n👋 dbt-ai MCP Server stopped")
-    except Exception as e:
-        print(f"❌ Error starting MCP server: {e}")
-        raise
-
-
-def start_mcp_server_hostable(
-    dbt_project_path: str, database: str = "snowflake", host: str = "localhost", port: int = 8080
-) -> None:
-    """Start the MCP server in hostable mode (sync wrapper)"""
-    import asyncio
-
-    try:
-        asyncio.run(run_mcp_server_hostable(dbt_project_path, database, host, port))
-    except KeyboardInterrupt:
-        print("\n👋 dbt-ai MCP Server stopped")
-    except Exception as e:
-        print(f"❌ Error starting hostable MCP server: {e}")
-        raise
