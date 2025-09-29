@@ -83,6 +83,7 @@ def call_chat_completion(
         }
 
         import openai as openai_legacy
+
         return openai_legacy.ChatCompletion.create(**kwargs)  # type: ignore
 
 
@@ -321,6 +322,7 @@ def generate_dalle_image(prompt: str, image_size: str = "1024x1024") -> bytes:
                 raise ValueError("OpenAI API key not available")
 
             import openai as openai_legacy
+
             response = openai_legacy.Image.create(  # type: ignore
                 prompt=final_prompt[:1000],  # Keep it shorter for compatibility
                 n=1,

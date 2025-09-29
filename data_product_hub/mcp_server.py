@@ -59,9 +59,9 @@ class CompositeMCPManager:
             async with self.clients["git"]:
                 result = await self.clients["git"].call_tool(tool_name, params)
                 # Convert result to dict format
-                if hasattr(result, 'content'):
+                if hasattr(result, "content"):
                     return {"content": result.content}
-                elif hasattr(result, '__dict__'):
+                elif hasattr(result, "__dict__"):
                     return result.__dict__
                 else:
                     return {"result": str(result)}
