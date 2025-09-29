@@ -6,10 +6,10 @@
 
 ## 🎯 Goal
 
-Extend **Data Product Hub** into a **unified information hub** by integrating with data platform MCP servers we have access to (GitHub, Monte Carlo, DataHub, etc.).
+Extend **Data Product Hub** into a unified information hub by integrating with data platform MCP servers we have access to (GitHub, Monte Carlo, DataHub, etc.).
 
-**Current State:** ✅ Working dbt analysis MCP server
-**Hackathon Goal:** 🎯 Add data platform integrations for comprehensive data product visibility
+ - **Current State:** ✅ Working dbt analysis MCP server
+ - **Hackathon Goal:** 🎯 Add data platform integrations for comprehensive data product visibility
 
 ---
 
