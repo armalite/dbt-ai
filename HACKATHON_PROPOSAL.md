@@ -1,4 +1,4 @@
-# 🚀 Hackathon Proposal: Universal Data Product Intelligence Hub
+# 🚀 Hackathon Proposal: Universal Data Intelligence Platform
 
 **Team Hackathon Project Proposal**
 
@@ -6,7 +6,7 @@
 
 ## 🎯 Executive Summary
 
-**Vision:** Transform our Data Product Hub from a single-service MCP server into the **Universal Data Product Intelligence Hub** - a composite MCP server that provides AI agents with comprehensive, real-time insights across the entire data ecosystem.
+**Vision:** Transform our Data Product Hub from a single-service MCP server into the **Universal Data Intelligence Platform** - a composite MCP server that provides AI agents with comprehensive, real-time insights across the entire data ecosystem.
 
 **Current State:** ✅ Production-ready dbt analysis MCP server with GitHub integration
 **Hackathon Goal:** 🎯 Integrate 3+ additional data platform MCP servers for unified data intelligence
@@ -62,8 +62,8 @@ Transform our MCP server into a **unified data intelligence platform** that give
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│               Universal Data Product Hub                     │
-│                    (Our MCP Server)                        │
+│               Data Product Hub                              │
+│           (Universal Data Intelligence Platform)            │
 ├─────────────────────────────────────────────────────────────┤
 │  Unified AI Agent Interface                                 │
 │  • Single MCP endpoint for all data intelligence           │
