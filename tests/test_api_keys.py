@@ -4,7 +4,7 @@ import os
 import unittest
 from unittest.mock import MagicMock, patch
 
-from data_product_hub.api_keys import get_openai_api_key, has_openai_access, get_api_key_source
+from data_product_hub.api_keys import get_api_key_source, get_openai_api_key, has_openai_access
 
 
 class TestApiKeys(unittest.TestCase):
@@ -39,7 +39,7 @@ class TestApiKeys(unittest.TestCase):
         self.assertTrue(has_openai_access("https://github.com/test/repo"))
 
     @patch("data_product_hub.api_keys.get_github_auth")
-    def test_github_environment_secret_fallback(self, mock_get_github_auth):
+    def test_github_environment_secret_fallback(self, mock_get_github_auth: MagicMock) -> None:
         """Test GitHub environment secret fallback when no local key"""
         # Mock GitHub auth
         mock_auth = MagicMock()
@@ -58,7 +58,7 @@ class TestApiKeys(unittest.TestCase):
         self.assertEqual(source, "github_environment_secret")
 
     @patch("data_product_hub.api_keys.get_github_auth")
-    def test_no_api_key_available(self, mock_get_github_auth):
+    def test_no_api_key_available(self, mock_get_github_auth: MagicMock) -> None:
         """Test when no API key is available"""
         # Mock GitHub auth returning None
         mock_auth = MagicMock()
@@ -88,7 +88,7 @@ class TestApiKeys(unittest.TestCase):
         self.assertEqual(result, "sk-local-only")
 
     @patch("data_product_hub.api_keys.get_github_auth")
-    def test_github_auth_not_configured(self, mock_get_github_auth):
+    def test_github_auth_not_configured(self, mock_get_github_auth: MagicMock) -> None:
         """Test when GitHub auth is not configured"""
         # Mock no GitHub auth available
         mock_get_github_auth.return_value = None

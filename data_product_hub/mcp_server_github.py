@@ -96,16 +96,10 @@ def create_github_mcp_server(
     # Try to connect to Git MCP server on startup
     git_available = False
     if enable_git_integration:
-        import asyncio
+        pass
 
-        try:
-            # Try to connect to Git server (this will be called during server startup)
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            git_available = loop.run_until_complete(mcp_manager.add_git_client())
-            loop.close()
-        except Exception:
-            pass  # Git integration optional
+        # Git integration will be initialized lazily when needed
+        # This avoids event loop issues during server startup
 
     def _get_dbt_processor(
         repo_url: Optional[str] = None,
