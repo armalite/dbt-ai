@@ -12,8 +12,7 @@ import glob
 import os
 import sys
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 class DbtClientInterface(ABC):
@@ -64,10 +63,8 @@ class CustomDbtClient(DbtClientInterface):
     def _get_processor(self, project_path: str):
         """Get a DbtModelProcessor instance for the project"""
         from .dbt import DbtModelProcessor
-        return DbtModelProcessor(
-            dbt_project_path=project_path,
-            database=self.database
-        )
+
+        return DbtModelProcessor(dbt_project_path=project_path, database=self.database)
 
     async def get_model_info(self, model_name: str, project_path: str) -> Dict[str, Any]:
         """Get detailed information about a dbt model"""
@@ -103,7 +100,7 @@ class CustomDbtClient(DbtClientInterface):
                     "name": model["model_name"],
                     "description": model.get("description", ""),
                     "path": model.get("file_path", ""),
-                    "source": "custom_implementation"
+                    "source": "custom_implementation",
                 }
                 for model in models
             ]
@@ -128,7 +125,7 @@ class CustomDbtClient(DbtClientInterface):
                 "model": model_name,
                 "dependencies": model_deps,
                 "lineage_description": lineage_description,
-                "source": "custom_implementation"
+                "source": "custom_implementation",
             }
         except Exception as e:
             return {"error": f"Error getting lineage: {e!s}"}
@@ -146,7 +143,7 @@ class CustomDbtClient(DbtClientInterface):
                 "metadata_coverage_percent": round((len(models) - len(missing_metadata)) / len(models) * 100, 1)
                 if models
                 else 0,
-                "source": "custom_implementation"
+                "source": "custom_implementation",
             }
         except Exception as e:
             return {"error": f"Error checking coverage: {e!s}"}
@@ -157,11 +154,7 @@ class CustomDbtClient(DbtClientInterface):
             # Check for dbt_project.yml
             dbt_project_file = os.path.join(project_path, "dbt_project.yml")
             if not os.path.exists(dbt_project_file):
-                return {
-                    "valid": False,
-                    "error": "dbt_project.yml not found",
-                    "source": "custom_implementation"
-                }
+                return {"valid": False, "error": "dbt_project.yml not found", "source": "custom_implementation"}
 
             processor = self._get_processor(project_path)
             models, _ = processor.process_dbt_models(metadata_only=True)
@@ -170,14 +163,10 @@ class CustomDbtClient(DbtClientInterface):
                 "valid": True,
                 "dbt_project_path": project_path,
                 "models_found": len(models),
-                "source": "custom_implementation"
+                "source": "custom_implementation",
             }
         except Exception as e:
-            return {
-                "valid": False,
-                "error": f"Invalid dbt project: {e!s}",
-                "source": "custom_implementation"
-            }
+            return {"valid": False, "error": f"Invalid dbt project: {e!s}", "source": "custom_implementation"}
 
     async def compile_model(self, model_name: str, project_path: str) -> Dict[str, Any]:
         """Compile a dbt model to SQL"""
@@ -193,14 +182,10 @@ class CustomDbtClient(DbtClientInterface):
             if not model_file:
                 return {"error": f"Model {model_name} not found"}
 
-            with open(model_file, 'r') as f:
+            with open(model_file, "r") as f:
                 sql = f.read()
 
-            return {
-                "model": model_name,
-                "compiled_sql": sql,
-                "source": "custom_implementation"
-            }
+            return {"model": model_name, "compiled_sql": sql, "source": "custom_implementation"}
         except Exception as e:
             return {"error": f"Error compiling model: {e!s}"}
 
@@ -222,7 +207,7 @@ class CustomDbtClient(DbtClientInterface):
                     }
                     for model in models
                 ],
-                "source": "custom_implementation"
+                "source": "custom_implementation",
             }
         except Exception as e:
             return {"error": f"Error getting lineage: {e!s}"}
@@ -240,6 +225,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
         if self._client is None:
             try:
                 from fastmcp import Client
+
                 self._client = Client(self.mcp_server_url)
             except ImportError:
                 raise ImportError("fastmcp client not available for dbt MCP connection")
@@ -250,10 +236,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
         try:
             client = await self._get_client()
             async with client:
-                result = await client.call_tool("get_model", {
-                    "name": model_name,
-                    "project_path": project_path
-                })
+                result = await client.call_tool("get_model", {"name": model_name, "project_path": project_path})
                 if isinstance(result, dict):
                     result["source"] = "official_dbt_mcp"
                     return result
@@ -267,9 +250,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
         try:
             client = await self._get_client()
             async with client:
-                result = await client.call_tool("list_models", {
-                    "project_path": project_path
-                })
+                result = await client.call_tool("list_models", {"project_path": project_path})
                 # Add source to each model
                 if isinstance(result, list):
                     for model in result:
@@ -286,10 +267,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
         try:
             client = await self._get_client()
             async with client:
-                result = await client.call_tool("get_lineage", {
-                    "model": model_name,
-                    "project_path": project_path
-                })
+                result = await client.call_tool("get_lineage", {"model": model_name, "project_path": project_path})
                 if isinstance(result, dict):
                     result["source"] = "official_dbt_mcp"
                     return result
@@ -303,9 +281,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
         try:
             client = await self._get_client()
             async with client:
-                result = await client.call_tool("check_coverage", {
-                    "project_path": project_path
-                })
+                result = await client.call_tool("check_coverage", {"project_path": project_path})
                 if isinstance(result, dict):
                     result["source"] = "official_dbt_mcp"
                     return result
@@ -319,9 +295,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
         try:
             client = await self._get_client()
             async with client:
-                result = await client.call_tool("validate_project", {
-                    "project_path": project_path
-                })
+                result = await client.call_tool("validate_project", {"project_path": project_path})
                 if isinstance(result, dict):
                     result["source"] = "official_dbt_mcp"
                     return result
@@ -335,10 +309,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
         try:
             client = await self._get_client()
             async with client:
-                result = await client.call_tool("compile", {
-                    "models": [model_name],
-                    "project_path": project_path
-                })
+                result = await client.call_tool("compile", {"models": [model_name], "project_path": project_path})
                 if isinstance(result, dict):
                     result["source"] = "official_dbt_mcp"
                     return result
@@ -352,9 +323,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
         try:
             client = await self._get_client()
             async with client:
-                result = await client.call_tool("get_project_lineage", {
-                    "project_path": project_path
-                })
+                result = await client.call_tool("get_project_lineage", {"project_path": project_path})
                 if isinstance(result, dict):
                     result["source"] = "official_dbt_mcp"
                     return result
@@ -365,9 +334,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
 
 
 def create_dbt_client(
-    use_official_mcp: Optional[bool] = None,
-    mcp_server_url: Optional[str] = None,
-    database: str = "snowflake"
+    use_official_mcp: Optional[bool] = None, mcp_server_url: Optional[str] = None, database: str = "snowflake"
 ) -> DbtClientInterface:
     """
     Factory function to create the appropriate dbt client
@@ -389,6 +356,7 @@ def create_dbt_client(
         if python_version >= (3, 12):
             try:
                 import dbt_mcp
+
                 use_official_mcp = True
             except ImportError:
                 use_official_mcp = False

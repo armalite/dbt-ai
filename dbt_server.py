@@ -11,10 +11,10 @@ Usage:
 - Provides official dbt-core functionality without custom implementation
 """
 
-import asyncio
 import os
 import sys
 from pathlib import Path
+
 
 # Configure environment for dbt-core operations
 def setup_dbt_environment():
@@ -31,6 +31,7 @@ def setup_dbt_environment():
     # Set reasonable defaults for MCP server operation
     if not os.getenv("DBT_MCP_LOG_LEVEL"):
         os.environ["DBT_MCP_LOG_LEVEL"] = "INFO"
+
 
 def main():
     """Main entry point for dbt MCP server"""
@@ -56,6 +57,7 @@ def main():
     except Exception as e:
         print(f"❌ Error starting dbt MCP server: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
