@@ -1,7 +1,7 @@
 [project]
 name = "data-product-hub"
 description = "Composite MCP server for data product quality assessment and AI agent integration"
-version = "0.1.0"
+version = "0.2.0"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

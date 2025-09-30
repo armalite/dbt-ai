@@ -4,7 +4,7 @@
 
 A production-ready Model Context Protocol (MCP) server that provides comprehensive dbt project quality assessment for **any GitHub repository**. Now featuring **official dbt-labs MCP integration** for native dbt commands, semantic layer access, and enhanced AI capabilities. Powered by GitHub App authentication for secure, scalable access to public and private repositories.
 
-## 🔥 What's New in v2.0
+## 🔥 What's New in v0.2.0
 
 ### Major Enhancements
 - **🎯 Official dbt-labs MCP Integration**: Native `dbt run`, `build`, `test`, `compile` commands
