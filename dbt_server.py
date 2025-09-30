@@ -5,18 +5,19 @@ This serves as the entry point for deploying the official dbt-labs/dbt-mcp serve
 alongside our Data Product Hub composite server. This allows us to leverage
 official dbt MCP tools while maintaining our orchestration capabilities.
 
-Usage:
-- Deploy this as a separate FastMCP instance for dbt-specific operations
-- Your main Data Product Hub server connects to this as an MCP client
-- Provides official dbt-core functionality without custom implementation
+FastMCP expects to find a server object with a standard name (mcp, server, or app).
+Since dbt-mcp creates its server asynchronously, we create it at module level
+following their official pattern.
 """
 
+import asyncio
 import os
-import sys
 from pathlib import Path
 
+from dbt_mcp.config.config import load_config
+from dbt_mcp.mcp.server import create_dbt_mcp
 
-# Configure environment for dbt-core operations
+
 def setup_dbt_environment() -> None:
     """Configure environment variables for dbt-core operations"""
 
@@ -33,31 +34,10 @@ def setup_dbt_environment() -> None:
         os.environ["DBT_MCP_LOG_LEVEL"] = "INFO"
 
 
-def main() -> None:
-    """Main entry point for dbt MCP server"""
+# Setup environment before creating the server
+setup_dbt_environment()
 
-    # Setup environment
-    setup_dbt_environment()
-
-    try:
-        # Import and run the official dbt MCP server
-        from dbt_mcp.main import main as dbt_main
-
-        print("🚀 Starting dbt MCP Server...")
-        print("   This server provides official dbt-labs MCP tools")
-        print("   for dbt-core projects and integrates with Data Product Hub")
-
-        # Delegate to official dbt MCP main function
-        dbt_main()
-
-    except ImportError as e:
-        print(f"❌ Failed to import dbt-mcp: {e}")
-        print("   Make sure dbt-mcp is installed: pip install git+https://github.com/dbt-labs/dbt-mcp.git")
-        sys.exit(1)
-    except Exception as e:
-        print(f"❌ Error starting dbt MCP server: {e}")
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
+# Create the server object that FastMCP expects to find
+# This follows the same pattern as dbt_mcp.main but exposes the server object
+config = load_config()
+mcp = asyncio.run(create_dbt_mcp(config))
