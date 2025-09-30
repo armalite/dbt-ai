@@ -3,7 +3,7 @@ name = "data-product-hub"
 description = "Composite MCP server for data product quality assessment and AI agent integration"
 version = "0.1.0"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "dbt-snowflake~=1.4",
     "openai>=1.0,<2.0",
@@ -13,9 +13,10 @@ dependencies = [
     "pyvis~=0.3.2",
     "plotly~=5.14",
     "numpy~=1.24",
-    "fastmcp==2.11.3",
+    "fastmcp>=2.11.0",
     "PyJWT>=2.8.0",
     "requests>=2.31.0",
+    "dbt-mcp @ git+https://github.com/dbt-labs/dbt-mcp.git",
 ]
 
 [project.scripts]

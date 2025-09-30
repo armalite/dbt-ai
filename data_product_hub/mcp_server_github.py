@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from fastmcp import Client, FastMCP
 
 from data_product_hub.api_keys import get_api_key_source, get_openai_api_key
-from data_product_hub.dbt import DbtModelProcessor
+from data_product_hub.dbt_client import DbtClientInterface, create_dbt_client
 from data_product_hub.github_auth import get_github_auth
 from data_product_hub.repo_manager import repo_manager
 
@@ -93,6 +93,9 @@ def create_github_mcp_server(
     # Initialize composite MCP manager
     mcp_manager = CompositeMCPManager()
 
+    # Initialize dbt client (auto-detects implementation based on Python version)
+    dbt_client = create_dbt_client(database=database)
+
     # Try to connect to Git MCP server on startup
     git_available = False
     if enable_git_integration:
@@ -101,13 +104,13 @@ def create_github_mcp_server(
         # Git integration will be initialized lazily when needed
         # This avoids event loop issues during server startup
 
-    def _get_dbt_processor(
+    async def _get_dbt_client_and_path(
         repo_url: Optional[str] = None,
-    ) -> tuple[Optional[DbtModelProcessor], Optional[str], Optional[Dict]]:
-        """Get dbt processor for either GitHub repo or default local project
+    ) -> tuple[Optional[DbtClientInterface], Optional[str], Optional[Dict]]:
+        """Get dbt client and project path for either GitHub repo or default local project
 
         Returns:
-            Tuple of (processor, project_path, error_info)
+            Tuple of (dbt_client, project_path, error_info)
         """
         if repo_url:
             # Handle GitHub repository
@@ -136,7 +139,7 @@ def create_github_mcp_server(
                 else:
                     dbt_project_path = local_path
 
-                return DbtModelProcessor(dbt_project_path, database), dbt_project_path, None
+                return dbt_client, dbt_project_path, None
             else:
                 return None, None, {"error": "Failed to get repository path"}
         else:
@@ -153,13 +156,13 @@ def create_github_mcp_server(
 
             # We've already checked that default_dbt_project_path is not None above
             assert default_dbt_project_path is not None
-            return DbtModelProcessor(default_dbt_project_path, database), default_dbt_project_path, None
+            return dbt_client, default_dbt_project_path, None
 
-    def _analyze_dbt_model_impl(model_name: str, repo_url: Optional[str] = None) -> dict:
+    async def _analyze_dbt_model_impl(model_name: str, repo_url: Optional[str] = None) -> dict:
         """Internal implementation for dbt model analysis"""
         try:
-            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
-            if error or not dbt_processor or not project_path:
+            dbt_client_instance, project_path, error = await _get_dbt_client_and_path(repo_url)
+            if error or not dbt_client_instance or not project_path:
                 return {
                     "model_name": model_name,
                     "repo_url": repo_url,
@@ -184,17 +187,17 @@ def create_github_mcp_server(
                     "dependencies": [],
                 }
 
-            # Process using existing logic
-            result = dbt_processor.process_model(model_file, advanced=False)
+            # Get model info using abstracted client
+            model_info = await dbt_client_instance.get_model_info(model_name, project_path)
 
             return {
-                "model_name": result["model_name"],
+                "model_name": model_name,
                 "repo_url": repo_url,
                 "project_path": project_path,
-                "dbt_analysis": result,
-                "metadata_exists": result["metadata_exists"],
-                "suggestions": result["suggestions"],
-                "dependencies": result["refs"],
+                "dbt_analysis": model_info,
+                "metadata_exists": "description" in model_info and bool(model_info.get("description")),
+                "suggestions": model_info.get("suggestions", ""),
+                "dependencies": model_info.get("dependencies", []),
             }
 
         except Exception as e:
@@ -208,7 +211,7 @@ def create_github_mcp_server(
             }
 
     @app.tool
-    def analyze_dbt_model(model_name: str, repo_url: Optional[str] = None) -> dict:
+    async def analyze_dbt_model(model_name: str, repo_url: Optional[str] = None) -> dict:
         """Analyze a specific dbt model for quality and best practices
 
         Args:
@@ -219,10 +222,10 @@ def create_github_mcp_server(
         Returns:
             Comprehensive quality assessment including dbt analysis and metadata
         """
-        return _analyze_dbt_model_impl(model_name, repo_url)
+        return await _analyze_dbt_model_impl(model_name, repo_url)
 
     @app.tool
-    def analyze_dbt_model_with_ai(model_name: str, repo_url: Optional[str] = None) -> dict:
+    async def analyze_dbt_model_with_ai(model_name: str, repo_url: Optional[str] = None) -> dict:
         """Analyze a specific dbt model with AI-powered suggestions (requires OpenAI API key)
 
         Args:
@@ -234,7 +237,7 @@ def create_github_mcp_server(
             Enhanced dbt analysis with AI-powered suggestions and recommendations
         """
         # Get basic analysis first
-        basic_analysis = _analyze_dbt_model_impl(model_name, repo_url)
+        basic_analysis = await _analyze_dbt_model_impl(model_name, repo_url)
 
         # Check for OpenAI API access
         api_key = get_openai_api_key(repo_url)
@@ -257,45 +260,32 @@ def create_github_mcp_server(
 
         # Perform AI-enhanced analysis
         try:
-            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
-            if error or not dbt_processor or not project_path:
+            dbt_client_instance, project_path, error = await _get_dbt_client_and_path(repo_url)
+            if error or not dbt_client_instance or not project_path:
                 return {**basic_analysis, "ai_analysis": {"status": "error", "message": "Could not access dbt project"}}
 
-            # Use existing dbt analysis logic with AI
-            model_files = find_model_files(project_path)
-            model_file = find_model_file(model_name, model_files)
+            # Get model info with AI analysis
+            model_info = await dbt_client_instance.get_model_info(model_name, project_path)
 
-            if not model_file:
+            if not model_info:
                 return {
                     **basic_analysis,
                     "ai_analysis": {"status": "error", "message": f"Model '{model_name}' not found"},
                 }
 
-            # Process with advanced AI analysis
-            # Note: This requires the dbt processor to be configured with the API key
-            import os
+            # AI analysis is handled by the client implementation
+            ai_result = model_info
 
-            old_key = os.environ.get("OPENAI_API_KEY")
-            try:
-                os.environ["OPENAI_API_KEY"] = api_key
-                ai_result = dbt_processor.process_model(model_file, advanced=True)
-
-                return {
-                    **basic_analysis,
-                    "ai_analysis": {
-                        "status": "success",
-                        "advanced_suggestions": ai_result.get("suggestions", ""),
-                        "ai_recommendations": ai_result.get("ai_recommendations", []),
-                        "quality_score": ai_result.get("quality_score"),
-                    },
-                    "api_key_source": get_api_key_source(repo_url),
-                }
-            finally:
-                # Restore original environment
-                if old_key:
-                    os.environ["OPENAI_API_KEY"] = old_key
-                elif "OPENAI_API_KEY" in os.environ:
-                    del os.environ["OPENAI_API_KEY"]
+            return {
+                **basic_analysis,
+                "ai_analysis": {
+                    "status": "success",
+                    "advanced_suggestions": ai_result.get("suggestions", ""),
+                    "ai_recommendations": ai_result.get("ai_recommendations", []),
+                    "quality_score": ai_result.get("quality_score"),
+                },
+                "api_key_source": get_api_key_source(repo_url),
+            }
 
         except Exception as e:
             return {
@@ -305,7 +295,7 @@ def create_github_mcp_server(
             }
 
     @app.tool
-    def check_metadata_coverage(repo_url: Optional[str] = None) -> dict:
+    async def check_metadata_coverage(repo_url: Optional[str] = None) -> dict:
         """Check metadata coverage across all dbt models
 
         Args:
@@ -316,30 +306,25 @@ def create_github_mcp_server(
             Summary of metadata coverage including missing models and statistics
         """
         try:
-            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
-            if error or not dbt_processor or not project_path:
+            dbt_client_instance, project_path, error = await _get_dbt_client_and_path(repo_url)
+            if error or not dbt_client_instance or not project_path:
                 return {
                     "operation": "metadata_coverage_check",
                     "repo_url": repo_url,
-                    **(error or {"error": "Failed to get dbt processor"}),
+                    **(error or {"error": "Failed to get dbt client"}),
                     "total_models": 0,
                     "metadata_coverage_percent": 0,
                 }
 
-            # Use existing metadata checking logic
-            models, missing_metadata = dbt_processor.process_dbt_models(metadata_only=True)
+            # Check metadata coverage using abstracted client
+            coverage = await dbt_client_instance.check_metadata_coverage(project_path)
 
             return {
                 "operation": "metadata_coverage_check",
                 "repo_url": repo_url,
                 "project_path": project_path,
                 "database": database,
-                "total_models": len(models),
-                "models_with_metadata": [m["model_name"] for m in models if m["metadata_exists"]],
-                "missing_metadata": missing_metadata,
-                "metadata_coverage_percent": round((len(models) - len(missing_metadata)) / len(models) * 100, 1)
-                if models
-                else 0,
+                **coverage,
             }
 
         except Exception as e:
@@ -352,7 +337,7 @@ def create_github_mcp_server(
             }
 
     @app.tool
-    def get_project_lineage(repo_url: Optional[str] = None) -> dict:
+    async def get_project_lineage(repo_url: Optional[str] = None) -> dict:
         """Get lineage information for all models in the dbt project
 
         Args:
@@ -363,35 +348,25 @@ def create_github_mcp_server(
             Model lineage description and dependency information
         """
         try:
-            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
-            if error or not dbt_processor or not project_path:
+            dbt_client_instance, project_path, error = await _get_dbt_client_and_path(repo_url)
+            if error or not dbt_client_instance or not project_path:
                 return {
                     "operation": "project_lineage",
                     "repo_url": repo_url,
-                    **(error or {"error": "Failed to get dbt processor"}),
+                    **(error or {"error": "Failed to get dbt client"}),
                     "lineage_description": "",
                     "total_models": 0,
                     "models": [],
                 }
 
-            # Use existing lineage logic
-            models, _ = dbt_processor.process_dbt_models(metadata_only=True)
-            lineage_description, graph = dbt_processor.generate_lineage(models)
+            # Get lineage using abstracted client
+            lineage = await dbt_client_instance.get_lineage(project_path)
 
             return {
                 "operation": "project_lineage",
                 "repo_url": repo_url,
                 "project_path": project_path,
-                "lineage_description": lineage_description,
-                "total_models": len(models),
-                "models": [
-                    {
-                        "name": model["model_name"],
-                        "dependencies": model["refs"],
-                        "has_metadata": model["metadata_exists"],
-                    }
-                    for model in models
-                ],
+                **lineage,
             }
 
         except Exception as e:
@@ -442,7 +417,7 @@ def create_github_mcp_server(
             return {"model_name": model_name, "repo_url": repo_url, "error": str(e), "overall_score": 0}
 
     @app.tool
-    def analyze_dbt_model_with_git_context(
+    async def analyze_dbt_model_with_git_context(
         model_name: str, repo_url: Optional[str] = None, include_history: bool = True
     ) -> dict:
         """Enhanced dbt model analysis with Git context from connected Git MCP server
@@ -457,7 +432,7 @@ def create_github_mcp_server(
             Enhanced analysis including dbt quality assessment and Git context
         """
         # Start with basic dbt analysis
-        dbt_result = _analyze_dbt_model_impl(model_name, repo_url)
+        dbt_result = await _analyze_dbt_model_impl(model_name, repo_url)
 
         # Add Git context if available and requested
         git_context = {"status": "not_available", "message": "Git integration not enabled"}
