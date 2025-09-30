@@ -1,39 +1,82 @@
 # Data Product Hub
 
-**Universal MCP Server for dbt Project Analysis - Works with Any GitHub Repository**
+**Enhanced MCP Server for dbt Project Analysis with Official dbt Integration**
 
-A production-ready Model Context Protocol (MCP) server that provides comprehensive dbt project quality assessment for **any GitHub repository**. Powered by GitHub App authentication for secure, scalable access to public and private repositories. Purpose-built for AI agents and modern data workflows.
+A production-ready Model Context Protocol (MCP) server that provides comprehensive dbt project quality assessment for **any GitHub repository**. Now featuring **official dbt-labs MCP integration** for native dbt commands, semantic layer access, and enhanced AI capabilities. Powered by GitHub App authentication for secure, scalable access to public and private repositories.
+
+## 🔥 What's New in v2.0
+
+### Major Enhancements
+- **🎯 Official dbt-labs MCP Integration**: Native `dbt run`, `build`, `test`, `compile` commands
+- **🧠 Semantic Layer Access**: `text_to_sql` for natural language to SQL conversion
+- **🔀 Git MCP Integration**: File history, blame analysis, and change context
+- **⚡ Python 3.12 Support**: Enhanced performance and future-proof architecture
+- **🏗️ Dual-Server Architecture**: Combine official dbt tools with GitHub orchestration
+- **🔄 Backward Compatibility**: Seamless fallback to custom implementation when needed
+
+### Migration Guide
+- **Existing Users**: No action required - backward compatible with Python 3.10+
+- **Enhanced Features**: Deploy with Python 3.12 for full dbt-labs integration
+- **API Unchanged**: All existing MCP tools work exactly the same with enhanced capabilities
 
 ## 🚀 What is Data Product Hub?
 
 Data Product Hub transforms **any dbt project on GitHub** into an **agent-accessible data quality platform** that:
 
+- **🔥 NEW: Official dbt-labs MCP integration** - Native `dbt run`, `build`, `test`, `compile` commands
+- **🔥 NEW: Semantic Layer access** - `text_to_sql` for natural language queries
+- **🔥 NEW: Enhanced AI capabilities** - Leverages official dbt Discovery API
 - **Analyzes ANY GitHub dbt repository** with AI-powered suggestions and best practices
 - **Works with public and private repos** via secure GitHub App authentication
 - **Supports subdirectory dbt projects** (detects dbt/, transform/, analytics/ folders)
 - **Checks metadata coverage** across your entire data product portfolio
 - **Maps data lineage** and dependency relationships
-- **Integrates with Git** for enhanced context and change analysis
+- **🔥 NEW: Git MCP Integration** - File history, blame, and change analysis
+- **Enhanced GitHub integration** - Works with any public/private repository
 - **Exposes MCP tools** for seamless AI agent integration
 - **Deploys anywhere** - FastMCP Cloud (recommended), Docker, Kubernetes
 
 ## Features
 
-### 🔧 Universal MCP Tools (Work with Any GitHub Repository)
-- `analyze_dbt_model(model_name, repo_url)` - Basic dbt model analysis
-- `analyze_dbt_model_with_ai(model_name, repo_url)` - **NEW**: AI-powered analysis with user's OpenAI key
-- `check_metadata_coverage(repo_url)` - Project-wide metadata assessment
-- `get_project_lineage(repo_url)` - Data dependency mapping
+### 🔧 Enhanced MCP Tools (Work with Any GitHub Repository)
+
+#### Core Analysis Tools
+- `analyze_dbt_model(model_name, repo_url)` - **Enhanced**: Now uses official dbt-labs MCP for compilation
+- `analyze_dbt_model_with_ai(model_name, repo_url)` - AI-powered analysis with advanced dbt insights
+- `check_metadata_coverage(repo_url)` - Project-wide metadata assessment with official dbt Discovery
+- `get_project_lineage(repo_url)` - **Enhanced**: Data dependency mapping with dbt-core integration
 - `assess_data_product_quality(model_name, repo_url)` - Comprehensive quality scoring
 - `validate_github_repository(repo_url)` - Validate repo access and dbt structure
-- `analyze_dbt_model_with_git_context(model_name, repo_url)` - dbt analysis + Git history
-- `get_composite_server_status()` - Server capabilities and GitHub integration status
+- `analyze_dbt_model_with_git_context(model_name, repo_url)` - **Enhanced**: dbt analysis + Git history, blame, and change context
+- `get_composite_server_status()` - Server capabilities and GitHub/Git integration status
 
-### 🌐 Deployment Flexibility
+#### 🔥 NEW: Enhanced Integrations
+
+**Official dbt-labs Integration** *(Python 3.12+)*:
+- **Native dbt Commands**: `compile`, `run`, `build`, `test` via official dbt-core
+- **Semantic Layer**: `text_to_sql` for natural language to SQL conversion
+- **Advanced Discovery**: Full dbt manifest and metadata access
+- **Future-Proof**: Automatically inherits new dbt-labs MCP features
+
+**Git MCP Integration**:
+- **File History**: `git_log` for tracking model changes over time
+- **Blame Analysis**: `git_blame` for understanding code ownership
+- **Change Context**: Enhanced analysis with Git commit information
+- **Repository Integration**: Seamless GitHub repository analysis
+
+### 🌐 Deployment Options
+
+#### Production (Recommended): Dual-Server Architecture
+- **Data Product Hub Server**: Enhanced orchestration with GitHub integration
+- **dbt MCP Server**: Official dbt-labs tools and semantic layer
+- **Single Repo, Two Entry Points**: `server.py` and `dbt_server.py`
+- **Full Feature Set**: All official dbt-labs capabilities + your enhancements
+
+#### Development: Single-Server Mode
 - **Local CLI** - `dph -f ./project`
 - **Hostable MCP Server** - `dph serve --mcp-host 0.0.0.0`
 - **Container Deployment** - Docker + Kubernetes + Helm charts
-- **FastMCP Cloud** - One-click cloud deployment
+- **Basic Feature Set**: Custom dbt implementation (Python 3.10+ compatible)
 
 ### 🔗 Agent Integration
 - Compatible with Claude Code, Cursor, and any MCP-enabled AI agent
@@ -42,24 +85,17 @@ Data Product Hub transforms **any dbt project on GitHub** into an **agent-access
 
 ## Quick Start
 
-### 🎯 GitHub Repository Analysis (Recommended)
+### 🚀 Use the Hosted Service (Recommended)
 
-**1. Install the GitHub App on your dbt repositories:**
+**Ready to use immediately - no setup required!**
+
+**1. Install the GitHub App (30 seconds):**
    - Visit: https://github.com/apps/data-product-hub/installations/new
    - Select repositories containing dbt projects
    - Grant read permissions
 
-**2. (Optional) Enable AI features by adding your OpenAI API key:**
-   - Go to Repository Settings → Environments
-   - Create or use any of these environment names: `production`, `prod`, `data-analysis`, `main`, or `staging`
-   - Add `OPENAI_API_KEY` as an **Environment Secret**
-   - Set the value to your OpenAI API key (`sk-proj-...`)
-   - This enables the `analyze_dbt_model_with_ai` tool
-   - **Note:** All other tools work without an API key - only AI-powered analysis requires it
-
-**3. Use via Claude Desktop:**
+**2. Add to Claude Desktop:**
    ```json
-   // Add to ~/.claude_desktop_config.json
    {
      "mcpServers": {
        "data-product-hub": {
@@ -70,15 +106,32 @@ Data Product Hub transforms **any dbt project on GitHub** into an **agent-access
    }
    ```
 
-**4. Ask Claude to analyze any dbt repository:**
+**3. Start analyzing (any GitHub repository):**
    ```
-   "Analyze the customer_metrics model in https://github.com/company/analytics-dbt"
-   "Get AI-powered suggestions for the user_events model in github.com/company/dbt-models"
+   "Analyze the customer_summary model with Git history in https://github.com/company/dbt-project"
    "Check metadata coverage for github.com/myorg/data-warehouse"
-   "Get project lineage for github.com/startup/dbt-models"
+   "Run dbt tests and compile models in github.com/startup/analytics"
+   "Show me who last changed the user_events model and why"
    ```
 
-### 🖥️ Local CLI Usage (Backwards Compatible)
+**That's it!** 🎉 No deployment required. GitHub App handles authentication automatically.
+
+### 🔑 Enable AI Features (Optional)
+
+For AI-powered suggestions and advanced analysis:
+
+1. **Go to Repository Settings → Environments**
+2. **Create environment:** `production`, `prod`, `data-analysis`, `main`, or `staging`
+3. **Add Environment Secret:** `OPENAI_API_KEY` = `sk-proj-...`
+4. **Use enhanced tools:**
+   ```
+   "Get AI-powered suggestions for the user_events model"
+   "Convert to SQL: 'Show revenue by customer for last 30 days'"
+   ```
+
+### 🖥️ Local Development (Optional)
+
+For local development and testing:
 
 ```bash
 # Install package
@@ -125,73 +178,45 @@ async with client:
     )
 ```
 
-## Deployment Options
+## Why Choose Data Product Hub?
 
-### 1. Use the Hosted Service (Recommended)
+### 🚀 Hosted Service (Zero Setup)
+- **Instant access** - Works immediately with any GitHub repository
+- **Always up-to-date** - Latest dbt-labs MCP integration and features
+- **Fully managed** - No deployment, maintenance, or scaling concerns
+- **Enhanced security** - GitHub App authentication with environment secrets
+- **Free tier available** - Get started without commitment
 
-**Ready to use immediately:**
-- MCP Server: `https://data-product-hub.fastmcp.app/mcp`
-- GitHub App: https://github.com/apps/data-product-hub/installations/new
+### 🏢 Enterprise Options
 
-**Quick Setup:**
-1. Install the GitHub App on your dbt repositories
-2. Add the MCP server to Claude Desktop configuration
-3. Start analyzing any dbt repository via Claude
+For organizations with specific requirements:
 
-### 2. Deploy Your Own Instance
+#### Option 1: Hosted Service + Private GitHub App
+- Use our hosted MCP server with your own GitHub App
+- Full control over repository access and permissions
+- [📖 Custom GitHub App Setup Guide](./GITHUB_APP_SETUP.md)
 
-For organizations wanting their own instance:
+#### Option 2: Self-Hosted Deployment
+- Deploy in your own infrastructure for maximum control
+- Perfect for air-gapped environments or strict compliance
+- [📖 Enterprise Self-Hosting Guide](./ENTERPRISE.md)
 
-**Prerequisites:**
-- Fork this repository
-- Create your own GitHub App with read permissions
-- Get GitHub App ID and base64-encoded private key
+---
 
-**Deployment:**
-1. Deploy to FastMCP Cloud with entry point: `server.py`
-2. Set your GitHub App credentials as environment variables
-3. Share your GitHub App installation URL with users
+## Support & Community
 
-[📖 Complete Deployment Guide](./GITHUB_APP_SETUP.md)
+### Getting Help
+- **Issues**: [GitHub Issues](https://github.com/data-product-hub/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/data-product-hub/discussions)
+- **Enterprise Support**: Contact us for dedicated support
 
-### 2. Docker Deployment
+### Roadmap
+- ✅ **Q3 2025**: Official dbt-labs MCP integration with Python 3.12
+- 🔄 **Q4 2025**: Monte Carlo data quality integration
+- 🔄 **Q1 2026**: DataHub lineage integration
+- 🔄 **Q2 2026**: Snowflake performance insights
 
-```bash
-# Using Docker Compose
-docker-compose up
-
-# Custom container
-docker run -p 8080:8080 \
-  -v ./my-dbt-project:/dbt-project \
-  data-product-hub:latest
-```
-
-### 3. Kubernetes Deployment
-
-```bash
-# Deploy with Helm
-helm install data-product-hub ./charts/data-product-hub \
-  --set persistence.hostPath="/path/to/dbt-project" \
-  --set dbtAi.database="snowflake"
-```
-
-[📖 Full Kubernetes Guide](./charts/data-product-hub/README.md)
-
-## Configuration
-
-The Data Product Hub MCP server is **ready to use** - no configuration required for end users! Just install the GitHub App and start analyzing.
-
-### For Local CLI Usage Only
-
-```bash
-# Database configuration (local CLI only)
-DATABASE=snowflake  # snowflake, postgres, redshift, bigquery
-
-# OpenAI API (optional - for AI features in local CLI)
-OPENAI_API_KEY=your-openai-api-key
-DBT_AI_BASIC_MODEL=gpt-4o-mini
-DBT_AI_ADVANCED_MODEL=gpt-4o
-```
+## Technical Details
 
 ### Supported Databases
 - Snowflake (default)
@@ -199,62 +224,82 @@ DBT_AI_ADVANCED_MODEL=gpt-4o
 - Amazon Redshift
 - Google BigQuery
 
-## Architecture
+### Python Requirements
+- **Hosted Service**: No requirements - runs Python 3.12 with latest features
+- **Local CLI**: Python 3.10+ (Python 3.12+ recommended for full feature set)
 
-Data Product Hub implements a **composite MCP architecture**:
+### Enterprise Configuration
+For self-hosted deployments, see [Enterprise Guide](./ENTERPRISE.md) for detailed configuration options.
 
+## How It Works
+
+### Simple Integration
 ```
-Your Data Product Hub Server
-├── Core dbt Analysis
-├── Git Integration (via Git MCP server)
-├── Future: Monte Carlo Integration
-├── Future: DataHub Integration
-└── Future: Snowflake Performance Integration
+Your AI Agent (Claude, Cursor, etc.)
+            ↓
+    Data Product Hub MCP Server
+            ↓
+  📊 Analyzes any GitHub dbt repository
+  🤖 Enhanced with official dbt-labs tools
+  🔍 Provides comprehensive quality insights
 ```
 
-This allows AI agents to get comprehensive data product insights from a single MCP endpoint.
+### Behind the Scenes (Hosted Service)
+- **GitHub App Authentication** - Secure repository access
+- **Official dbt-labs Integration** - Native dbt commands and semantic layer
+- **Composite MCP Architecture** - Combines multiple data tools in one endpoint
+- **Intelligent Fallbacks** - Works with any dbt project structure
+
+### Architecture Benefits
+- **Single MCP Endpoint** - No complex setup for users
+- **Enhanced Capabilities** - Official dbt tools + GitHub integration + AI insights
+- **Future-Proof** - Automatically inherits new dbt-labs and tool updates
+- **Scalable** - Handles repositories of any size
 
 ## Use Cases
 
-### For Data Teams
-- **Automated quality checks** in CI/CD pipelines
-- **Documentation coverage** monitoring
-- **Lineage analysis** for impact assessment
-- **Agent-driven data workflows**
+### 🚀 **AI-First Data Development**
+- **"Analyze this dbt model and suggest improvements"**
+- **"Check if our data warehouse has good documentation"**
+- **"What's the lineage for this customer table?"**
+- **"Convert this question to SQL: show revenue by month"**
 
-### for AI Agents
-- **Data product understanding** before making changes
-- **Quality assessment** as part of automated reviews
-- **Context-aware suggestions** with Git history
-- **Comprehensive data product insights**
+### 👥 **Team Collaboration**
+- **Code reviews** - AI agents understand dbt context
+- **Onboarding** - New team members get instant project insights
+- **Documentation** - Automated coverage monitoring
+- **Best practices** - Consistent standards across projects
 
-### For Platform Teams
-- **Centralized data quality hub**
-- **Production-ready MCP server** deployment
-- **Multi-tool integration** platform
-- **Kubernetes-native** scaling
+### 🏢 **Enterprise Data Governance**
+- **Quality monitoring** across all dbt repositories
+- **Compliance checks** for documentation standards
+- **Impact analysis** before making changes
+- **Cross-project insights** and dependencies
 
-## Migrating from dbt-ai
+---
 
-If you're upgrading from the legacy `dbt-ai` package:
+## Getting Started
 
-```bash
-# Old command
-dbt-ai -f ./project --metadata-only
+Ready to transform your dbt development with AI?
 
-# New command (identical functionality) - use the short dph command!
-dph -f ./project --metadata-only
-```
+1. **[Install GitHub App](https://github.com/apps/data-product-hub/installations/new)** (30 seconds)
+2. **[Add to Claude Desktop](https://data-product-hub.fastmcp.app/docs/setup)**
+3. **Start analyzing** any dbt repository with natural language
 
-All CLI functionality is **100% backwards compatible**.
+**Questions?** Check our [documentation](https://data-product-hub.fastmcp.app/docs) or [open an issue](https://github.com/data-product-hub/issues).
 
-## Contributing
+---
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+## Contributing & Support
+
+- **🐛 Bug Reports**: [GitHub Issues](https://github.com/data-product-hub/issues)
+- **💡 Feature Requests**: [GitHub Discussions](https://github.com/data-product-hub/discussions)
+- **🏢 Enterprise Support**: Contact us for dedicated support
+- **🤝 Contributing**: [Contributing Guide](CONTRIBUTING.md)
 
 ## License
 
-[MIT License](LICENSE)
+[MIT License](LICENSE) - Built with ❤️ for the data community
 
 ---
 
