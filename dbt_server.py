@@ -17,7 +17,7 @@ from pathlib import Path
 
 
 # Configure environment for dbt-core operations
-def setup_dbt_environment():
+def setup_dbt_environment() -> None:
     """Configure environment variables for dbt-core operations"""
 
     # Set default dbt profiles directory if not specified
@@ -33,7 +33,7 @@ def setup_dbt_environment():
         os.environ["DBT_MCP_LOG_LEVEL"] = "INFO"
 
 
-def main():
+def main() -> None:
     """Main entry point for dbt MCP server"""
 
     # Setup environment

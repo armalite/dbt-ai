@@ -9,10 +9,16 @@ This abstraction allows seamless migration when upgrading to Python 3.12.
 """
 
 import glob
+import importlib.util
 import os
 import sys
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+if TYPE_CHECKING:
+    from fastmcp import Client
+
+    from .dbt import DbtModelProcessor
 
 
 class DbtClientInterface(ABC):
@@ -60,7 +66,7 @@ class CustomDbtClient(DbtClientInterface):
     def __init__(self, database: str = "snowflake"):
         self.database = database
 
-    def _get_processor(self, project_path: str):
+    def _get_processor(self, project_path: str) -> "DbtModelProcessor":
         """Get a DbtModelProcessor instance for the project"""
         from .dbt import DbtModelProcessor
 
@@ -220,7 +226,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
         self.mcp_server_url = mcp_server_url
         self._client = None
 
-    async def _get_client(self):
+    async def _get_client(self) -> "Client":
         """Get or create MCP client connection"""
         if self._client is None:
             try:
@@ -228,7 +234,7 @@ class OfficialDbtMcpClient(DbtClientInterface):
 
                 self._client = Client(self.mcp_server_url)
             except ImportError:
-                raise ImportError("fastmcp client not available for dbt MCP connection")
+                raise ImportError("fastmcp client not available for dbt MCP connection") from None
         return self._client
 
     async def get_model_info(self, model_name: str, project_path: str) -> Dict[str, Any]:
@@ -355,9 +361,8 @@ def create_dbt_client(
         python_version = sys.version_info
         if python_version >= (3, 12):
             try:
-                import dbt_mcp
-
-                use_official_mcp = True
+                spec = importlib.util.find_spec("dbt_mcp")
+                use_official_mcp = spec is not None
             except ImportError:
                 use_official_mcp = False
         else:
@@ -373,6 +378,6 @@ def create_dbt_client(
 
 
 # Convenience function for backwards compatibility
-def get_dbt_client(**kwargs) -> DbtClientInterface:
+def get_dbt_client(**kwargs: Any) -> DbtClientInterface:
     """Get a dbt client instance with sensible defaults"""
     return create_dbt_client(**kwargs)
