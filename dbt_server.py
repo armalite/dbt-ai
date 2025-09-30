@@ -12,10 +12,8 @@ following their official pattern.
 
 import asyncio
 import os
+import sys
 from pathlib import Path
-
-from dbt_mcp.config.config import load_config
-from dbt_mcp.mcp.server import create_dbt_mcp
 
 
 def setup_dbt_environment() -> None:
@@ -34,10 +32,24 @@ def setup_dbt_environment() -> None:
         os.environ["DBT_MCP_LOG_LEVEL"] = "INFO"
 
 
-# Setup environment before creating the server
+# Setup environment before importing dbt_mcp
 setup_dbt_environment()
 
-# Create the server object that FastMCP expects to find
-# This follows the same pattern as dbt_mcp.main but exposes the server object
-config = load_config()
-mcp = asyncio.run(create_dbt_mcp(config))
+try:
+    from dbt_mcp.config.config import load_config
+    from dbt_mcp.mcp.server import create_dbt_mcp
+
+    # Create the server object that FastMCP expects to find
+    # This follows the same pattern as dbt_mcp.main but exposes the server object
+    config = load_config()
+    mcp = asyncio.run(create_dbt_mcp(config))
+
+except ImportError as e:
+    print(f"❌ Failed to import dbt-mcp: {e}")
+    print("   dbt-mcp is not available in this environment")
+    print("   This server cannot function without dbt-mcp")
+    print("   Please ensure dbt-mcp is installed: pip install git+https://github.com/dbt-labs/dbt-mcp.git")
+    sys.exit(1)
+except Exception as e:
+    print(f"❌ Error creating dbt MCP server: {e}")
+    sys.exit(1)
