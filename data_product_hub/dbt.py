@@ -1,9 +1,11 @@
 # flake8: noqa
 
 import glob
+import json
 import os
 import re
-from typing import Callable
+import subprocess
+from typing import Callable, Dict, List, Optional, Union
 
 import networkx as nx
 import plotly.graph_objects as go
@@ -247,3 +249,207 @@ class DbtModelProcessor:
             with open(model_path, "w") as f:
                 f.write(model_content.strip())
             print(f"Created model file: {model_path}")
+
+    def get_or_generate_manifest(self, project_path: str) -> Optional[Dict]:
+        """Get or generate dbt manifest.json for advanced analysis"""
+        manifest_path = os.path.join(project_path, "target", "manifest.json")
+
+        # Try to load existing manifest
+        if os.path.exists(manifest_path):
+            try:
+                with open(manifest_path, "r") as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError):
+                pass
+
+        # Try to generate manifest using dbt compile
+        try:
+            result = subprocess.run(
+                ["dbt", "compile", "--project-dir", project_path], capture_output=True, text=True, timeout=120
+            )
+            if result.returncode == 0 and os.path.exists(manifest_path):
+                with open(manifest_path, "r") as f:
+                    return json.load(f)
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+            pass
+
+        return None
+
+    def analyze_column_metadata_coverage(self, project_path: str) -> Dict:
+        """Analyze column-level metadata coverage using manifest"""
+        manifest = self.get_or_generate_manifest(project_path)
+        if not manifest:
+            return {"error": "Could not load or generate dbt manifest", "fallback_used": True}
+
+        total_columns = 0
+        documented_columns = 0
+        undocumented_by_model = {}
+
+        models = manifest.get("nodes", {})
+        for node_id, node in models.items():
+            if node.get("resource_type") == "model":
+                model_name = node.get("name", "")
+                columns = node.get("columns", {})
+
+                model_undocumented = []
+                for col_name, col_info in columns.items():
+                    total_columns += 1
+                    description = col_info.get("description", "").strip()
+                    if description:
+                        documented_columns += 1
+                    else:
+                        model_undocumented.append(col_name)
+
+                if model_undocumented:
+                    undocumented_by_model[model_name] = model_undocumented
+
+        coverage_percentage = round((documented_columns / total_columns * 100) if total_columns > 0 else 0, 1)
+
+        return {
+            "total_columns": total_columns,
+            "documented_columns": documented_columns,
+            "coverage_percentage": coverage_percentage,
+            "undocumented_by_model": undocumented_by_model,
+        }
+
+    def analyze_test_coverage(self, project_path: str) -> Dict:
+        """Analyze test coverage for models and columns using manifest"""
+        manifest = self.get_or_generate_manifest(project_path)
+        if not manifest:
+            return {"error": "Could not load or generate dbt manifest", "fallback_used": True}
+
+        models = {}
+        tests = {}
+
+        # Collect models
+        nodes = manifest.get("nodes", {})
+        for node_id, node in nodes.items():
+            if node.get("resource_type") == "model":
+                model_name = node.get("name", "")
+                models[model_name] = {"columns": list(node.get("columns", {}).keys()), "tests": []}
+
+        # Collect tests and map them to models
+        for node_id, node in nodes.items():
+            if node.get("resource_type") == "test":
+                test_name = node.get("name", "")
+                depends_on = node.get("depends_on", {}).get("nodes", [])
+
+                # Find which model this test applies to
+                for dep in depends_on:
+                    if dep.startswith("model."):
+                        model_name = dep.split(".")[-1]
+                        if model_name in models:
+                            test_info = {
+                                "name": test_name,
+                                "test_type": self._classify_test_type(node.get("raw_code", "")),
+                                "column": self._extract_test_column(node),
+                            }
+                            models[model_name]["tests"].append(test_info)
+
+        # Calculate coverage stats
+        total_models = len(models)
+        tested_models = len([m for m in models.values() if m["tests"]])
+        untested_models = [name for name, info in models.items() if not info["tests"]]
+
+        # Calculate column test coverage
+        total_columns = sum(len(model["columns"]) for model in models.values())
+        tested_columns = 0
+        for model_info in models.values():
+            tested_cols = set()
+            for test in model_info["tests"]:
+                if test["column"]:
+                    tested_cols.add(test["column"])
+            tested_columns += len(tested_cols)
+
+        return {
+            "total_models": total_models,
+            "tested_models": tested_models,
+            "untested_models": untested_models,
+            "model_coverage_percentage": round((tested_models / total_models * 100) if total_models > 0 else 0, 1),
+            "total_columns": total_columns,
+            "tested_columns": tested_columns,
+            "column_coverage_percentage": round((tested_columns / total_columns * 100) if total_columns > 0 else 0, 1),
+            "models": models,
+        }
+
+    def _classify_test_type(self, raw_code: str) -> str:
+        """Classify test type based on raw SQL code"""
+        code_lower = raw_code.lower()
+        if "not_null" in code_lower:
+            return "not_null"
+        elif "unique" in code_lower:
+            return "unique"
+        elif "relationships" in code_lower or "foreign" in code_lower:
+            return "relationships"
+        elif "accepted_values" in code_lower:
+            return "accepted_values"
+        else:
+            return "custom"
+
+    def _extract_test_column(self, test_node: Dict) -> Optional[str]:
+        """Extract column name from test node"""
+        # Check if test has column_name metadata
+        if "column_name" in test_node:
+            return test_node["column_name"]
+
+        # Try to extract from test metadata
+        test_metadata = test_node.get("test_metadata", {})
+        if "kwargs" in test_metadata:
+            column_name = test_metadata["kwargs"].get("column_name")
+            if column_name:
+                return column_name
+
+        return None
+
+    def get_model_tests_detailed(self, model_name: str, project_path: str) -> Dict:
+        """Get detailed test information for a specific model"""
+        coverage_data = self.analyze_test_coverage(project_path)
+
+        if "error" in coverage_data:
+            return coverage_data
+
+        models = coverage_data.get("models", {})
+        if model_name not in models:
+            return {"error": f"Model '{model_name}' not found in project"}
+
+        model_info = models[model_name]
+
+        # Calculate test coverage score for this model
+        total_columns = len(model_info["columns"])
+        tested_columns = len(set(test["column"] for test in model_info["tests"] if test["column"]))
+        has_model_tests = any(not test["column"] for test in model_info["tests"])
+
+        coverage_score = 0.0
+        if total_columns > 0:
+            column_score = tested_columns / total_columns * 0.8  # 80% weight for column tests
+            model_score = 0.2 if has_model_tests else 0  # 20% weight for model-level tests
+            coverage_score = round(column_score + model_score, 2)
+
+        return {
+            "model_name": model_name,
+            "tests": model_info["tests"],
+            "total_columns": total_columns,
+            "tested_columns": tested_columns,
+            "has_model_tests": has_model_tests,
+            "test_coverage_score": coverage_score,
+            "recommendations": self.generate_test_recommendations(model_info),
+        }
+
+    def generate_test_recommendations(self, model_info: Dict) -> List[str]:
+        """Generate test recommendations for a model"""
+        recommendations = []
+
+        tested_columns = set(test["column"] for test in model_info["tests"] if test["column"])
+        untested_columns = set(model_info["columns"]) - tested_columns
+
+        if untested_columns:
+            recommendations.append(f"Consider adding tests for columns: {', '.join(sorted(untested_columns))}")
+
+        # Check for common test patterns
+        test_types = set(test["test_type"] for test in model_info["tests"])
+        if "not_null" not in test_types:
+            recommendations.append("Consider adding not_null tests for key columns")
+        if "unique" not in test_types:
+            recommendations.append("Consider adding unique tests for identifier columns")
+
+        return recommendations

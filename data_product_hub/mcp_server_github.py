@@ -576,6 +576,11 @@ def create_github_mcp_server(
                 "analyze_dbt_model_with_git_context",
                 "validate_github_repository",
                 "get_composite_server_status",
+                # New manifest-based tools
+                "check_column_metadata_coverage",
+                "check_test_coverage",
+                "get_model_tests",
+                "get_untested_models",
             ],
             "ai_features": {
                 "local_openai_key": bool(os.getenv("OPENAI_API_KEY")),
@@ -593,6 +598,232 @@ def create_github_mcp_server(
                 "Snowflake MCP (performance metrics)",
             ],
         }
+
+    # ========================================
+    # NEW MANIFEST-BASED METADATA TOOLS
+    # ========================================
+
+    @app.tool
+    def check_column_metadata_coverage(repo_url: Optional[str] = None) -> dict:
+        """Check column-level metadata coverage using dbt manifest (enhanced version)
+
+        Args:
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
+
+        Returns:
+            Column-level metadata coverage analysis with detailed breakdown by model
+        """
+        try:
+            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
+            if error or not dbt_processor or not project_path:
+                return {
+                    "operation": "column_metadata_coverage_check",
+                    "repo_url": repo_url,
+                    **(error or {"error": "Failed to get dbt processor"}),
+                    "total_columns": 0,
+                    "coverage_percentage": 0,
+                }
+
+            # Use the enhanced manifest-based analysis
+            coverage_data = dbt_processor.analyze_column_metadata_coverage(project_path)
+
+            # If manifest fails, fallback to existing YAML-based method
+            if coverage_data.get("fallback_used"):
+                models, missing_metadata = dbt_processor.process_dbt_models(metadata_only=True)
+                return {
+                    "operation": "column_metadata_coverage_check",
+                    "repo_url": repo_url,
+                    "project_path": project_path,
+                    "database": database,
+                    "fallback_method": "yaml_analysis",
+                    "total_models": len(models),
+                    "models_with_metadata": [m["model_name"] for m in models if m["metadata_exists"]],
+                    "missing_metadata": missing_metadata,
+                    "model_coverage_percentage": round((len(models) - len(missing_metadata)) / len(models) * 100, 1)
+                    if models
+                    else 0,
+                    "note": "Column-level analysis unavailable - showing model-level coverage",
+                }
+
+            return {
+                "operation": "column_metadata_coverage_check",
+                "repo_url": repo_url,
+                "project_path": project_path,
+                "database": database,
+                "method": "manifest_analysis",
+                **coverage_data,
+            }
+
+        except Exception as e:
+            return {
+                "operation": "column_metadata_coverage_check",
+                "repo_url": repo_url,
+                "error": str(e),
+                "total_columns": 0,
+                "coverage_percentage": 0,
+            }
+
+    @app.tool
+    def check_test_coverage(repo_url: Optional[str] = None) -> dict:
+        """Check test coverage for models and columns using dbt manifest
+
+        Args:
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
+
+        Returns:
+            Comprehensive test coverage analysis including model and column level metrics
+        """
+        try:
+            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
+            if error or not dbt_processor or not project_path:
+                return {
+                    "operation": "test_coverage_check",
+                    "repo_url": repo_url,
+                    **(error or {"error": "Failed to get dbt processor"}),
+                    "total_models": 0,
+                    "tested_models": 0,
+                }
+
+            coverage_data = dbt_processor.analyze_test_coverage(project_path)
+
+            if "error" in coverage_data:
+                return {
+                    "operation": "test_coverage_check",
+                    "repo_url": repo_url,
+                    "project_path": project_path,
+                    **coverage_data,
+                }
+
+            return {
+                "operation": "test_coverage_check",
+                "repo_url": repo_url,
+                "project_path": project_path,
+                "database": database,
+                **coverage_data,
+            }
+
+        except Exception as e:
+            return {
+                "operation": "test_coverage_check",
+                "repo_url": repo_url,
+                "error": str(e),
+                "total_models": 0,
+                "tested_models": 0,
+            }
+
+    @app.tool
+    def get_model_tests(model_name: str, repo_url: Optional[str] = None) -> dict:
+        """Get detailed test information for a specific model
+
+        Args:
+            model_name: Name of the dbt model to analyze
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
+
+        Returns:
+            Detailed test coverage information for the specified model including recommendations
+        """
+        try:
+            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
+            if error or not dbt_processor or not project_path:
+                return {
+                    "model_name": model_name,
+                    "repo_url": repo_url,
+                    **(error or {"error": "Failed to get dbt processor"}),
+                    "tests": [],
+                    "test_coverage_score": 0,
+                }
+
+            test_details = dbt_processor.get_model_tests_detailed(model_name, project_path)
+
+            return {"repo_url": repo_url, "project_path": project_path, **test_details}
+
+        except Exception as e:
+            return {
+                "model_name": model_name,
+                "repo_url": repo_url,
+                "error": str(e),
+                "tests": [],
+                "test_coverage_score": 0,
+            }
+
+    @app.tool
+    def get_untested_models(repo_url: Optional[str] = None) -> dict:
+        """Get list of models with insufficient test coverage
+
+        Args:
+            repo_url: GitHub repository URL (e.g., 'https://github.com/org/repo').
+                     If not provided, uses the default configured dbt project.
+
+        Returns:
+            List of untested models with recommendations for improving test coverage
+        """
+        try:
+            dbt_processor, project_path, error = _get_dbt_processor(repo_url)
+            if error or not dbt_processor or not project_path:
+                return {
+                    "operation": "untested_models_check",
+                    "repo_url": repo_url,
+                    **(error or {"error": "Failed to get dbt processor"}),
+                    "untested_models": [],
+                    "recommendations": [],
+                }
+
+            coverage_data = dbt_processor.analyze_test_coverage(project_path)
+
+            if "error" in coverage_data:
+                return {
+                    "operation": "untested_models_check",
+                    "repo_url": repo_url,
+                    "project_path": project_path,
+                    **coverage_data,
+                    "recommendations": [],
+                }
+
+            # Generate specific recommendations for untested models
+            recommendations = []
+            models = coverage_data.get("models", {})
+
+            for model_name in coverage_data.get("untested_models", []):
+                if model_name in models:
+                    model_info = models[model_name]
+                    model_recs = dbt_processor.generate_test_recommendations(model_info)
+                    if model_recs:
+                        recommendations.append({"model": model_name, "suggestions": model_recs})
+
+            # Find undertested models (has some tests but low coverage)
+            undertested_models = []
+            for model_name, model_info in models.items():
+                if model_info["tests"]:  # Has some tests
+                    total_columns = len(model_info["columns"])
+                    tested_columns = len(set(test["column"] for test in model_info["tests"] if test["column"]))
+                    coverage_ratio = tested_columns / total_columns if total_columns > 0 else 0
+
+                    if coverage_ratio < 0.5:  # Less than 50% column coverage
+                        undertested_models.append(model_name)
+
+            return {
+                "operation": "untested_models_check",
+                "repo_url": repo_url,
+                "project_path": project_path,
+                "database": database,
+                "untested_models": coverage_data.get("untested_models", []),
+                "undertested_models": undertested_models,
+                "model_coverage_percentage": coverage_data.get("model_coverage_percentage", 0),
+                "column_coverage_percentage": coverage_data.get("column_coverage_percentage", 0),
+                "recommendations": recommendations,
+            }
+
+        except Exception as e:
+            return {
+                "operation": "untested_models_check",
+                "repo_url": repo_url,
+                "error": str(e),
+                "untested_models": [],
+                "recommendations": [],
+            }
 
     return app
 
