@@ -251,7 +251,11 @@ class DbtModelProcessor:
             print(f"Created model file: {model_path}")
 
     def get_or_generate_manifest(self, project_path: str) -> Optional[Dict]:
-        """Get or generate dbt manifest.json for advanced analysis"""
+        """Get or generate dbt manifest.json for advanced analysis
+
+        Uses dbt parse (fast, no DB connection) or dbt ls (fallback) to generate manifest.
+        These commands work without database connections unlike dbt compile.
+        """
         manifest_path = os.path.join(project_path, "target", "manifest.json")
 
         # Try to load existing manifest
@@ -262,14 +266,22 @@ class DbtModelProcessor:
             except (json.JSONDecodeError, IOError):
                 pass
 
-        # Try to generate manifest using dbt compile
+        # Try to generate manifest using dbt parse (works without database connection)
         try:
             result = subprocess.run(
-                ["dbt", "compile", "--project-dir", project_path], capture_output=True, text=True, timeout=120
+                ["dbt", "parse", "--project-dir", project_path], capture_output=True, text=True, timeout=60
             )
             if result.returncode == 0 and os.path.exists(manifest_path):
                 with open(manifest_path, "r") as f:
                     return json.load(f)
+            # If dbt parse fails, try dbt ls as fallback (also works without DB connection)
+            elif result.returncode != 0:
+                result = subprocess.run(
+                    ["dbt", "ls", "--project-dir", project_path], capture_output=True, text=True, timeout=60
+                )
+                if result.returncode == 0 and os.path.exists(manifest_path):
+                    with open(manifest_path, "r") as f:
+                        return json.load(f)
         except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
             pass
 
