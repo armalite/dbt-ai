@@ -266,23 +266,52 @@ class DbtModelProcessor:
             except (json.JSONDecodeError, IOError):
                 pass
 
+        # Check if dbt_project.yml exists
+        dbt_project_file = os.path.join(project_path, "dbt_project.yml")
+        if not os.path.exists(dbt_project_file):
+            print(f"⚠️  No dbt_project.yml found at {dbt_project_file}")
+            return None
+
+        # Check if dbt is available
+        try:
+            dbt_check = subprocess.run(["dbt", "--version"], capture_output=True, text=True, timeout=10)
+            if dbt_check.returncode != 0:
+                print(f"❌ dbt not available or not working: {dbt_check.stderr}")
+                return None
+        except (subprocess.SubprocessError, FileNotFoundError) as e:
+            print(f"❌ dbt command not found: {e}")
+            return None
+
         # Try to generate manifest using dbt parse (works without database connection)
         try:
+            print(f"🔍 Attempting dbt parse in {project_path}")
             result = subprocess.run(
                 ["dbt", "parse", "--project-dir", project_path], capture_output=True, text=True, timeout=60
             )
+            print(f"📄 dbt parse exit code: {result.returncode}")
+            if result.stderr:
+                print(f"⚠️  dbt parse stderr: {result.stderr}")
+
             if result.returncode == 0 and os.path.exists(manifest_path):
+                print(f"✅ Manifest generated at {manifest_path}")
                 with open(manifest_path, "r") as f:
                     return json.load(f)
             # If dbt parse fails, try dbt ls as fallback (also works without DB connection)
             elif result.returncode != 0:
+                print(f"🔄 dbt parse failed, trying dbt ls fallback")
                 result = subprocess.run(
                     ["dbt", "ls", "--project-dir", project_path], capture_output=True, text=True, timeout=60
                 )
+                print(f"📄 dbt ls exit code: {result.returncode}")
+                if result.stderr:
+                    print(f"⚠️  dbt ls stderr: {result.stderr}")
+
                 if result.returncode == 0 and os.path.exists(manifest_path):
+                    print(f"✅ Manifest generated via dbt ls at {manifest_path}")
                     with open(manifest_path, "r") as f:
                         return json.load(f)
-        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError) as e:
+            print(f"❌ Exception during manifest generation: {e}")
             pass
 
         return None
@@ -291,7 +320,28 @@ class DbtModelProcessor:
         """Analyze column-level metadata coverage using manifest"""
         manifest = self.get_or_generate_manifest(project_path)
         if not manifest:
-            return {"error": "Could not load or generate dbt manifest", "fallback_used": True}
+            # Check what specifically failed
+            dbt_project_file = os.path.join(project_path, "dbt_project.yml")
+            diagnostics = {
+                "dbt_project_exists": os.path.exists(dbt_project_file),
+                "project_path": project_path,
+            }
+
+            # Check if dbt is available
+            try:
+                dbt_check = subprocess.run(["dbt", "--version"], capture_output=True, text=True, timeout=10)
+                diagnostics["dbt_available"] = dbt_check.returncode == 0
+                if dbt_check.returncode != 0:
+                    diagnostics["dbt_error"] = dbt_check.stderr
+            except (subprocess.SubprocessError, FileNotFoundError):
+                diagnostics["dbt_available"] = False
+                diagnostics["dbt_error"] = "dbt command not found"
+
+            return {
+                "error": "Could not load or generate dbt manifest",
+                "fallback_used": True,
+                "diagnostics": diagnostics,
+            }
 
         total_columns = 0
         documented_columns = 0
@@ -328,7 +378,28 @@ class DbtModelProcessor:
         """Analyze test coverage for models and columns using manifest"""
         manifest = self.get_or_generate_manifest(project_path)
         if not manifest:
-            return {"error": "Could not load or generate dbt manifest", "fallback_used": True}
+            # Check what specifically failed
+            dbt_project_file = os.path.join(project_path, "dbt_project.yml")
+            diagnostics = {
+                "dbt_project_exists": os.path.exists(dbt_project_file),
+                "project_path": project_path,
+            }
+
+            # Check if dbt is available
+            try:
+                dbt_check = subprocess.run(["dbt", "--version"], capture_output=True, text=True, timeout=10)
+                diagnostics["dbt_available"] = dbt_check.returncode == 0
+                if dbt_check.returncode != 0:
+                    diagnostics["dbt_error"] = dbt_check.stderr
+            except (subprocess.SubprocessError, FileNotFoundError):
+                diagnostics["dbt_available"] = False
+                diagnostics["dbt_error"] = "dbt command not found"
+
+            return {
+                "error": "Could not load or generate dbt manifest",
+                "fallback_used": True,
+                "diagnostics": diagnostics,
+            }
 
         models = {}
         tests = {}
