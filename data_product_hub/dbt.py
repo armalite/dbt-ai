@@ -323,8 +323,9 @@ class DbtModelProcessor:
             models, missing_metadata = self.process_dbt_models(metadata_only=True)
 
             # Convert to manifest-like structure for consistency
+            models_dict: Dict[str, Dict] = {}
             fallback_data = {
-                "models": {},
+                "models": models_dict,
                 "total_models": len(models),
                 "missing_metadata": missing_metadata,
                 "metadata_coverage_percent": round((len(models) - len(missing_metadata)) / len(models) * 100, 1)
@@ -335,13 +336,14 @@ class DbtModelProcessor:
 
             # Convert models to expected format
             for model in models:
-                model_name = model["model_name"]
-                fallback_data["models"][model_name] = {
-                    "columns": [],  # Limited info without manifest
-                    "tests": [],  # Limited info without manifest
-                    "has_metadata": model["metadata_exists"],
-                    "dependencies": model.get("refs", []),
-                }
+                model_name = model.get("model_name", "")
+                if isinstance(model_name, str) and model_name:
+                    models_dict[model_name] = {
+                        "columns": [],  # Limited info without manifest
+                        "tests": [],  # Limited info without manifest
+                        "has_metadata": model.get("metadata_exists", False),
+                        "dependencies": model.get("refs", []),
+                    }
 
             return fallback_data
 
