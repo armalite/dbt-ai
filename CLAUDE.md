@@ -34,12 +34,12 @@ pytest -v                 # Verbose test output
 ## Architecture Overview
 
 ### Core Components
-- **CLI Entry Point**: `dbt_ai/main.py` - Command-line interface with argparse
-- **Model Processor**: `dbt_ai/dbt.py` - `DbtModelProcessor` class handles dbt project analysis
-- **AI Integration**: `dbt_ai/ai.py` - OpenAI API integration for generating recommendations and models
-- **Report Generation**: `dbt_ai/report.py` - HTML report generation with Jinja2 templates
-- **Configuration**: `dbt_ai/config.py` - Environment variable configuration management
-- **Utilities**: `dbt_ai/helper.py` - YAML processing and utility functions
+- **CLI Entry Point**: `data_product_hub/main.py` - Command-line interface with argparse
+- **Model Processor**: `data_product_hub/dbt.py` - `DbtModelProcessor` class handles dbt project analysis
+- **AI Integration**: `data_product_hub/ai.py` - OpenAI API integration for generating recommendations and models
+- **Report Generation**: `data_product_hub/report.py` - HTML report generation with Jinja2 templates
+- **Configuration**: `data_product_hub/config.py` - Environment variable configuration management
+- **Utilities**: `data_product_hub/helper.py` - YAML processing and utility functions
 
 ### Key Classes
 - `DbtModelProcessor` - Main analysis class that:

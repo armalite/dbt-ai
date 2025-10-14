@@ -1,8 +1,8 @@
-# dbt-ai MCP Server Testing Guide
+# Data Product Hub MCP Server Testing Guide
 
 ## What's Been Added
 
-✅ **MCP Server Mode**: New `--mcp-server` flag to start dbt-ai as an MCP server
+✅ **MCP Server Mode**: New `--mcp-server` flag to start Data Product Hub as an MCP server
 ✅ **FastMCP Integration**: Using FastMCP 2.11.3 for MCP protocol support
 ✅ **Four Tools Exposed**:
 - `analyze_dbt_model(model_name)` - Analyze specific model
@@ -20,10 +20,10 @@ source .venv/bin/activate
 pip install -e .
 
 # Start MCP server (requires a dbt project path)
-dbt-ai --mcp-server -f /path/to/your/dbt/project
+Data Product Hub --mcp-server -f /path/to/your/dbt/project
 
 # Example with sample dbt project
-dbt-ai --mcp-server -f ./sample-dbt-project
+Data Product Hub --mcp-server -f ./sample-dbt-project
 ```
 
 ### 2. Test with MCP Client
@@ -32,9 +32,9 @@ Currently, the server runs in stdio mode (standard for MCP). To test:
 
 ```bash
 # Test that it starts without errors
-dbt-ai --mcp-server -f ./sample-dbt-project
+Data Product Hub --mcp-server -f ./sample-dbt-project
 # Should show:
-# 🚀 Starting dbt-ai MCP Server
+# 🚀 Starting Data Product Hub MCP Server
 # 📁 dbt project: ./sample-dbt-project
 # 💾 Database: snowflake
 # 🔧 Available tools:
@@ -68,8 +68,8 @@ dbt-ai --mcp-server -f ./sample-dbt-project
 ## Architecture
 
 ```
-CLI Mode:           dbt-ai -f project → JSON output
-MCP Server Mode:    dbt-ai --mcp-server -f project → MCP tools exposed
+CLI Mode:           Data Product Hub -f project → JSON output
+MCP Server Mode:    Data Product Hub --mcp-server -f project → MCP tools exposed
 
 MCP Tools:
 ├── analyze_dbt_model(model_name) → Uses existing process_model()
@@ -88,4 +88,4 @@ pip install -e .
 python -c "import fastmcp; print('FastMCP version:', fastmcp.__version__)"
 ```
 
-This is Phase 1 of the composite MCP server - basic foundation that exposes dbt-ai functionality via MCP protocol!
+This is Phase 1 of the composite MCP server - basic foundation that exposes Data Product Hub functionality via MCP protocol!

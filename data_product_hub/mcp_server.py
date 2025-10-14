@@ -351,7 +351,7 @@ def create_mcp_server(
 
 async def run_mcp_server(dbt_project_path: str, database: str = "snowflake") -> None:
     """Start the MCP server in stdio mode"""
-    print("🚀 Starting dbt-ai MCP Server (stdio mode)")
+    print("🚀 Starting Data Product Hub MCP Server (stdio mode)")
     print(f"📁 dbt project: {dbt_project_path}")
     print(f"💾 Database: {database}")
     print("🔧 Available tools:")
@@ -373,7 +373,7 @@ async def run_mcp_server_hostable(
     dbt_project_path: str, database: str = "snowflake", host: str = "localhost", port: int = 8080
 ) -> None:
     """Start the MCP server in hostable mode (SSE transport)"""
-    print("🚀 Starting dbt-ai MCP Server (hostable mode)")
+    print("🚀 Starting Data Product Hub MCP Server (hostable mode)")
     print(f"📁 dbt project: {dbt_project_path}")
     print(f"💾 Database: {database}")
     print(f"🌐 Host: {host}:{port}")
@@ -401,9 +401,9 @@ def start_mcp_server(dbt_project_path: str, database: str = "snowflake", _port: 
     try:
         asyncio.run(run_mcp_server(dbt_project_path, database))
     except KeyboardInterrupt:
-        print("\n👋 dbt-ai MCP Server stopped")
+        print("\n👋 Data Product Hub MCP Server stopped")
     except Exception as e:
-        print(f"❌ Error starting MCP server: {e}")
+        print(f"❌ Error starting Data Product Hub MCP server: {e}")
         raise
 
 
@@ -416,7 +416,7 @@ def start_mcp_server_hostable(
     try:
         asyncio.run(run_mcp_server_hostable(dbt_project_path, database, host, port))
     except KeyboardInterrupt:
-        print("\n👋 dbt-ai MCP Server stopped")
+        print("\n👋 Data Product Hub MCP Server stopped")
     except Exception as e:
-        print(f"❌ Error starting hostable MCP server: {e}")
+        print(f"❌ Error starting hostable Data Product Hub MCP server: {e}")
         raise

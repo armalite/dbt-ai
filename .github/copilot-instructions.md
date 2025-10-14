@@ -1,7 +1,7 @@
-# GitHub Copilot Instructions for dbt-ai
+# GitHub Copilot Instructions for Data Product Hub
 
 ## Project Overview
-This repository contains **dbt-ai**, a Python CLI application that provides AI-powered assistance for dbt (data build tool) development. The tool offers:
+This repository contains **Data Product Hub**, a Python CLI application that provides AI-powered assistance for dbt (data build tool) development. The tool offers:
 
 - **AI-powered recommendations** for dbt model improvements (basic and advanced)
 - **Model analysis** including metadata validation and lineage visualization
@@ -11,11 +11,11 @@ This repository contains **dbt-ai**, a Python CLI application that provides AI-p
 ## Key Architecture Components
 
 ### Core Modules
-- `dbt_ai/main.py` - CLI entry point and argument parsing
-- `dbt_ai/dbt.py` - `DbtModelProcessor` class with core dbt project analysis logic
-- `dbt_ai/ai.py` - OpenAI integration for generating recommendations and models
-- `dbt_ai/report.py` - HTML report generation using Jinja2 templates
-- `dbt_ai/helper.py` - Utility functions for YAML processing and formatting
+- `data_product_hub/main.py` - CLI entry point and argument parsing
+- `data_product_hub/dbt.py` - `DbtModelProcessor` class with core dbt project analysis logic
+- `data_product_hub/ai.py` - OpenAI integration for generating recommendations and models
+- `data_product_hub/report.py` - HTML report generation using Jinja2 templates
+- `data_product_hub/helper.py` - Utility functions for YAML processing and formatting
 
 ### Key Classes
 - `DbtModelProcessor` - Main processor class for analyzing dbt projects
@@ -120,7 +120,7 @@ Database-specific considerations should be included in AI recommendations.
 
 ### Template System
 - Uses Jinja2 for HTML report generation
-- Templates located in `dbt_ai/templates/`
+- Templates located in `data_product_hub/templates/`
 - Markdown filter support for rich content formatting
 - Automatic browser opening for generated reports
 

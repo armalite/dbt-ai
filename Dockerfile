@@ -1,4 +1,4 @@
-# Multi-stage build for dbt-ai MCP Server
+# Multi-stage build for Data Product Hub MCP Server
 FROM python:3.10-slim as builder
 
 # Install system dependencies for building
