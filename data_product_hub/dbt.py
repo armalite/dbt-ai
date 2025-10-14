@@ -5,11 +5,11 @@ import json
 import os
 import re
 import subprocess
+import yaml
 from typing import Callable, Dict, List, Optional, Union
 
 import networkx as nx
 import plotly.graph_objects as go
-import yaml
 
 from data_product_hub.ai import generate_dalle_image, generate_models, generate_response, generate_response_advanced
 from data_product_hub.helper import find_yaml_files
@@ -250,11 +250,26 @@ class DbtModelProcessor:
                 f.write(model_content.strip())
             print(f"Created model file: {model_path}")
 
+    def _is_hosted_environment(self) -> bool:
+        """Detect if we're running in a hosted/cloud environment where dbt CLI might not work"""
+        # Check for common hosted environment indicators
+        hosted_indicators = [
+            os.getenv("FASTMCP_CLOUD"),  # FastMCP Cloud
+            os.getenv("HEROKU"),  # Heroku
+            os.getenv("VERCEL"),  # Vercel
+            os.getenv("NETLIFY"),  # Netlify
+            os.getenv("AWS_LAMBDA_FUNCTION_NAME"),  # AWS Lambda
+            "/tmp" in os.getcwd(),  # Temporary directory (common in serverless)
+        ]
+        return any(hosted_indicators)
+
     def get_or_generate_manifest(self, project_path: str) -> Optional[Dict]:
         """Get or generate dbt manifest.json for advanced analysis
 
         Uses dbt parse (fast, no DB connection) or dbt ls (fallback) to generate manifest.
         These commands work without database connections unlike dbt compile.
+
+        In hosted environments, automatically skips dbt CLI attempts.
         """
         manifest_path = os.path.join(project_path, "target", "manifest.json")
 
@@ -270,6 +285,11 @@ class DbtModelProcessor:
         dbt_project_file = os.path.join(project_path, "dbt_project.yml")
         if not os.path.exists(dbt_project_file):
             print(f"⚠️  No dbt_project.yml found at {dbt_project_file}")
+            return None
+
+        # Skip dbt CLI attempts in hosted environments
+        if self._is_hosted_environment():
+            print("🌐 Hosted environment detected, skipping dbt CLI attempts")
             return None
 
         # Check if dbt is available
@@ -350,6 +370,68 @@ class DbtModelProcessor:
         except Exception as e:
             return {"error": f"Both manifest generation and fallback analysis failed: {e}", "fallback_method": "failed"}
 
+    def _enhanced_yaml_analysis(self, project_path: str) -> Dict:
+        """Enhanced YAML-based analysis that works better with GitHub repositories"""
+        try:
+            # Find all YAML files that might contain model metadata
+            yaml_files = []
+            models_dir = os.path.join(project_path, "models")
+            if os.path.exists(models_dir):
+                for root, dirs, files in os.walk(models_dir):
+                    for file in files:
+                        if file.endswith((".yml", ".yaml")):
+                            yaml_files.append(os.path.join(root, file))
+
+            # Parse YAML files to extract model and column information
+            models_info = {}
+            test_info = {}
+
+            for yaml_file in yaml_files:
+                try:
+                    with open(yaml_file, "r") as f:
+                        yaml_content = yaml.safe_load(f)
+
+                    if yaml_content and "models" in yaml_content:
+                        for model in yaml_content["models"]:
+                            model_name = model.get("name")
+                            if model_name:
+                                columns = model.get("columns", [])
+                                tests = model.get("tests", [])
+
+                                models_info[model_name] = {
+                                    "columns": [col.get("name") for col in columns if col.get("name")],
+                                    "column_descriptions": {
+                                        col.get("name"): col.get("description", "")
+                                        for col in columns
+                                        if col.get("name")
+                                    },
+                                    "model_description": model.get("description", ""),
+                                    "tests": tests,
+                                    "has_metadata": bool(model.get("description"))
+                                    or any(col.get("description") for col in columns),
+                                }
+
+                    # Parse tests
+                    if yaml_content and "tests" in yaml_content:
+                        for test in yaml_content["tests"]:
+                            test_name = test.get("name", "unnamed_test")
+                            test_info[test_name] = test
+
+                except Exception as e:
+                    print(f"⚠️  Error parsing {yaml_file}: {e}")
+                    continue
+
+            return {
+                "models": models_info,
+                "tests": test_info,
+                "total_models": len(models_info),
+                "yaml_files_processed": len(yaml_files),
+                "enhanced_method": "direct_yaml_parsing",
+            }
+
+        except Exception as e:
+            return {"error": f"Enhanced YAML analysis failed: {e}", "enhanced_method": "failed"}
+
     def analyze_column_metadata_coverage(self, project_path: str) -> Dict:
         """Analyze column-level metadata coverage using manifest"""
         manifest = self.get_or_generate_manifest(project_path)
@@ -371,19 +453,44 @@ class DbtModelProcessor:
                 diagnostics["dbt_available"] = False
                 diagnostics["dbt_error"] = "dbt command not found"
 
-            # Try fallback analysis using existing YAML-based methods
-            print("🔄 Attempting fallback analysis without dbt CLI")
-            fallback_result = self._fallback_dbt_analysis_without_cli(project_path)
+            # Try enhanced YAML analysis for better GitHub repository support
+            print("🔄 Using enhanced YAML-based analysis (dbt CLI unavailable)")
+            fallback_result = self._enhanced_yaml_analysis(project_path)
 
             if "error" not in fallback_result:
+                # Calculate actual column coverage from enhanced analysis
+                total_columns = 0
+                documented_columns = 0
+                undocumented_by_model = {}
+
+                models = fallback_result.get("models", {})
+                for model_name, model_info in models.items():
+                    columns = model_info.get("columns", [])
+                    column_descriptions = model_info.get("column_descriptions", {})
+
+                    total_columns += len(columns)
+                    model_undocumented = []
+
+                    for col_name in columns:
+                        if column_descriptions.get(col_name, "").strip():
+                            documented_columns += 1
+                        else:
+                            model_undocumented.append(col_name)
+
+                    if model_undocumented:
+                        undocumented_by_model[model_name] = model_undocumented
+
+                coverage_percentage = round((documented_columns / total_columns * 100) if total_columns > 0 else 0, 1)
+
                 return {
-                    "error": "Manifest generation failed, using fallback analysis",
+                    "message": "Using enhanced YAML-based analysis - dbt CLI unavailable in hosted environment",
                     "fallback_used": True,
+                    "method": "enhanced_yaml_analysis",
                     "diagnostics": diagnostics,
-                    "total_columns": 0,  # Limited without manifest
-                    "documented_columns": 0,  # Limited without manifest
-                    "coverage_percentage": 0,  # Limited without manifest
-                    "undocumented_by_model": {},
+                    "total_columns": total_columns,
+                    "documented_columns": documented_columns,
+                    "coverage_percentage": coverage_percentage,
+                    "undocumented_by_model": undocumented_by_model,
                     "fallback_data": fallback_result,
                 }
             else:
@@ -445,13 +552,13 @@ class DbtModelProcessor:
                 diagnostics["dbt_available"] = False
                 diagnostics["dbt_error"] = "dbt command not found"
 
-            # Try fallback analysis using existing YAML-based methods
-            print("🔄 Attempting fallback analysis without dbt CLI")
-            fallback_result = self._fallback_dbt_analysis_without_cli(project_path)
+            # Try enhanced YAML analysis for better GitHub repository support
+            print("🔄 Using enhanced YAML-based analysis (dbt CLI unavailable)")
+            fallback_result = self._enhanced_yaml_analysis(project_path)
 
             if "error" not in fallback_result:
                 return {
-                    "error": "Manifest generation failed, using fallback analysis",
+                    "message": "Using YAML-based analysis - dbt CLI unavailable in hosted environment",
                     "fallback_used": True,
                     "diagnostics": diagnostics,
                     "models": fallback_result.get("models", {}),
