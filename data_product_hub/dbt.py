@@ -316,6 +316,38 @@ class DbtModelProcessor:
 
         return None
 
+    def _fallback_dbt_analysis_without_cli(self, project_path: str) -> Dict:
+        """Fallback analysis using direct file parsing when dbt CLI unavailable"""
+        try:
+            # Use existing YAML-based analysis as fallback
+            models, missing_metadata = self.process_dbt_models(metadata_only=True)
+
+            # Convert to manifest-like structure for consistency
+            fallback_data = {
+                "models": {},
+                "total_models": len(models),
+                "missing_metadata": missing_metadata,
+                "metadata_coverage_percent": round((len(models) - len(missing_metadata)) / len(models) * 100, 1)
+                if models
+                else 0,
+                "fallback_method": "yaml_based_analysis",
+            }
+
+            # Convert models to expected format
+            for model in models:
+                model_name = model["model_name"]
+                fallback_data["models"][model_name] = {
+                    "columns": [],  # Limited info without manifest
+                    "tests": [],  # Limited info without manifest
+                    "has_metadata": model["metadata_exists"],
+                    "dependencies": model.get("refs", []),
+                }
+
+            return fallback_data
+
+        except Exception as e:
+            return {"error": f"Both manifest generation and fallback analysis failed: {e}", "fallback_method": "failed"}
+
     def analyze_column_metadata_coverage(self, project_path: str) -> Dict:
         """Analyze column-level metadata coverage using manifest"""
         manifest = self.get_or_generate_manifest(project_path)
@@ -337,11 +369,27 @@ class DbtModelProcessor:
                 diagnostics["dbt_available"] = False
                 diagnostics["dbt_error"] = "dbt command not found"
 
-            return {
-                "error": "Could not load or generate dbt manifest",
-                "fallback_used": True,
-                "diagnostics": diagnostics,
-            }
+            # Try fallback analysis using existing YAML-based methods
+            print("🔄 Attempting fallback analysis without dbt CLI")
+            fallback_result = self._fallback_dbt_analysis_without_cli(project_path)
+
+            if "error" not in fallback_result:
+                return {
+                    "error": "Manifest generation failed, using fallback analysis",
+                    "fallback_used": True,
+                    "diagnostics": diagnostics,
+                    "total_columns": 0,  # Limited without manifest
+                    "documented_columns": 0,  # Limited without manifest
+                    "coverage_percentage": 0,  # Limited without manifest
+                    "undocumented_by_model": {},
+                    "fallback_data": fallback_result,
+                }
+            else:
+                return {
+                    "error": "Could not load or generate dbt manifest",
+                    "fallback_used": True,
+                    "diagnostics": diagnostics,
+                }
 
         total_columns = 0
         documented_columns = 0
@@ -395,11 +443,27 @@ class DbtModelProcessor:
                 diagnostics["dbt_available"] = False
                 diagnostics["dbt_error"] = "dbt command not found"
 
-            return {
-                "error": "Could not load or generate dbt manifest",
-                "fallback_used": True,
-                "diagnostics": diagnostics,
-            }
+            # Try fallback analysis using existing YAML-based methods
+            print("🔄 Attempting fallback analysis without dbt CLI")
+            fallback_result = self._fallback_dbt_analysis_without_cli(project_path)
+
+            if "error" not in fallback_result:
+                return {
+                    "error": "Manifest generation failed, using fallback analysis",
+                    "fallback_used": True,
+                    "diagnostics": diagnostics,
+                    "models": fallback_result.get("models", {}),
+                    "untested_models": list(fallback_result.get("missing_metadata", [])),  # Approximate
+                    "model_coverage_percentage": fallback_result.get("metadata_coverage_percent", 0),
+                    "column_coverage_percentage": 0,  # Limited without manifest
+                    "fallback_data": fallback_result,
+                }
+            else:
+                return {
+                    "error": "Could not load or generate dbt manifest",
+                    "fallback_used": True,
+                    "diagnostics": diagnostics,
+                }
 
         models = {}
         tests = {}
