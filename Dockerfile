@@ -28,6 +28,9 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+# Install dbt CLI for manifest generation
+RUN pip install --no-cache-dir dbt-core dbt-snowflake
+
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash dbtai
 

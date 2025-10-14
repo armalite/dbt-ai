@@ -263,6 +263,44 @@ class DbtModelProcessor:
         ]
         return any(hosted_indicators)
 
+    def _ensure_dbt_available(self) -> bool:
+        """Ensure dbt CLI is available, attempting installation if needed"""
+        # Check if dbt is already available
+        try:
+            result = subprocess.run(["dbt", "--version"], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                print(f"✅ dbt CLI available: {result.stdout.split()[1] if result.stdout else 'unknown version'}")
+                return True
+        except (subprocess.SubprocessError, FileNotFoundError):
+            pass
+
+        # Try to install dbt if not available and in hosted environment
+        if self._is_hosted_environment():
+            print("🔧 Attempting to install dbt CLI in hosted environment...")
+            try:
+                # Try installing dbt-core directly
+                install_result = subprocess.run(
+                    ["pip", "install", "--no-cache-dir", "dbt-core~=1.5", "setuptools", "standard-distutils"],
+                    capture_output=True,
+                    text=True,
+                    timeout=180,
+                )
+
+                if install_result.returncode == 0:
+                    # Verify installation worked
+                    verify_result = subprocess.run(["dbt", "--version"], capture_output=True, text=True, timeout=10)
+                    if verify_result.returncode == 0:
+                        print("✅ dbt CLI installed successfully in hosted environment")
+                        return True
+                    else:
+                        print(f"❌ dbt installation verification failed: {verify_result.stderr}")
+                else:
+                    print(f"❌ dbt installation failed: {install_result.stderr}")
+            except Exception as e:
+                print(f"❌ Exception during dbt installation: {e}")
+
+        return False
+
     def get_or_generate_manifest(self, project_path: str) -> Optional[Dict]:
         """Get or generate dbt manifest.json for advanced analysis
 
@@ -287,10 +325,12 @@ class DbtModelProcessor:
             print(f"⚠️  No dbt_project.yml found at {dbt_project_file}")
             return None
 
-        # Skip dbt CLI attempts in hosted environments
+        # Skip dbt CLI attempts in hosted environments (unless dbt is available)
         if self._is_hosted_environment():
-            print("🌐 Hosted environment detected, skipping dbt CLI attempts")
-            return None
+            # Try to setup dbt if in hosted environment
+            if not self._ensure_dbt_available():
+                print("🌐 Hosted environment detected, dbt CLI unavailable, using fallback analysis")
+                return None
 
         # Check if dbt is available
         try:

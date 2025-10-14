@@ -5,8 +5,9 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "dbt-snowflake~=1.5",
-    "setuptools>=66.0",  # Provides distutils for Python 3.12+
+    "dbt-core~=1.5",        # Core dbt CLI functionality
+    "dbt-snowflake~=1.5",   # Snowflake adapter (includes dbt-core)
+    "setuptools>=66.0",     # Provides distutils for Python 3.12+
     "standard-distutils",   # Standalone distutils for Python 3.12+
     "openai>=1.0,<2.0",
     "pydantic>=2.0,<3.0",
