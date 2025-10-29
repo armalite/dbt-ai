@@ -1,5 +1,7 @@
 # Data Product Hub
 
+> NOTE: This project is still under construction and in a state of flux. It is being tested internally so setup instructions below may not work as intended.
+
 **Universal MCP Server for dbt Project Analysis - Works with Any GitHub Repository**
 
 A production-ready Model Context Protocol (MCP) server that provides comprehensive dbt project quality assessment for **any GitHub repository**. Powered by GitHub App authentication for secure, scalable access to public and private repositories. Purpose-built for AI agents and modern data workflows.
